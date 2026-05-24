@@ -617,21 +617,53 @@ function renderLeaderboard() {
   const data = loadData();
 
   const rows = Object.keys(data.participants)
-    .map(initials => ({ ...data.participants[initials], ...getParticipantStats(initials) }))
-    .sort((a, b) => b.points - a.points || b.exacts - a.exacts || b.outcomes - a.outcomes);
+    .map(initials => {
+      const participant = data.participants[initials];
+      const stats = getParticipantStats(initials);
+      const hitRate = stats.guessed > 0
+        ? Math.round(((stats.exacts + stats.outcomes) / stats.guessed) * 100)
+        : 0;
+
+      return {
+        ...participant,
+        ...stats,
+        hitRate
+      };
+    })
+    .sort((a, b) =>
+      b.points - a.points ||
+      b.exacts - a.exacts ||
+      b.outcomes - a.outcomes ||
+      b.hitRate - a.hitRate ||
+      a.fullName.localeCompare(b.fullName)
+    );
+
+  if (rows.length === 0) {
+    const emptyRow = document.createElement('tr');
+    emptyRow.innerHTML = `
+      <td colspan="8">
+        <span class="small">No participants yet.</span>
+      </td>
+    `;
+    tbody.appendChild(emptyRow);
+  }
 
   rows.forEach((row, index) => {
     const tr = document.createElement('tr');
+    const medal = getLeaderboardMedal(index);
+    const topScorerText = row.topScorerCorrect
+      ? '✅ +20'
+      : escapeHtml(row.topScorerGuess || '-');
 
     tr.innerHTML = `
-      <td>${index + 1}</td>
+      <td><strong>${medal} ${index + 1}</strong></td>
       <td><strong>${escapeHtml(row.initials)}</strong></td>
       <td>${escapeHtml(row.fullName)}</td>
       <td><strong>${row.points}</strong></td>
       <td class="green">${row.exacts}</td>
       <td class="blue">${row.outcomes}</td>
       <td>${row.guessed}</td>
-      <td>${row.topScorerCorrect ? '✅ +20' : escapeHtml(row.topScorerGuess || '-')}</td>
+      <td>${topScorerText}<br><span class="small">Hit rate: ${row.hitRate}%</span></td>
     `;
 
     tbody.appendChild(tr);
@@ -650,6 +682,13 @@ function renderLeaderboard() {
   setText('poolSize', `${rows.length * 50} DKK`);
   setText('totalGuesses', totalGuesses);
   setText('completedMatches', completedMatches);
+}
+
+function getLeaderboardMedal(index) {
+  if (index === 0) return '🥇';
+  if (index === 1) return '🥈';
+  if (index === 2) return '🥉';
+  return '';
 }
 
 function renderOverview() {
