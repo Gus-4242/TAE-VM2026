@@ -3,94 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>World Cup 2026 TAE Guess Tournament </title>
-  <style>
-    :root {
-      --bg: #0f172a;
-      --card: #111827;
-      --card2: #1f2937;
-      --text: #f8fafc;
-      --muted: #94a3b8;
-      --green: #22c55e;
-      --blue: #38bdf8;
-      --red: #ef4444;
-      --yellow: #facc15;
-      --border: #334155;
-      --input: #020617;
-    }
-
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: Arial, Helvetica, sans-serif;
-      background: radial-gradient(circle at top, #1e3a8a 0, var(--bg) 40%, #020617 100%);
-      color: var(--text);
-      min-height: 100vh;
-    }
-
-    header { padding: 28px 18px 18px; text-align: center; }
-    header h1 { margin: 0; font-size: 32px; letter-spacing: -0.5px; }
-    header p { color: var(--muted); margin: 8px 0 0; }
-
-    .container { max-width: 1180px; margin: 0 auto; padding: 16px; }
-    .card {
-      background: rgba(17, 24, 39, 0.92);
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      padding: 18px;
-      margin-bottom: 16px;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.25);
-    }
-
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
-    label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 5px; }
-    input, select, button, textarea {
-      width: 100%; border-radius: 12px; border: 1px solid var(--border);
-      background: var(--input); color: var(--text); padding: 10px 12px; font-size: 14px;
-    }
-    button {
-      cursor: pointer; background: linear-gradient(135deg, #2563eb, #0ea5e9);
-      border: none; font-weight: 700; transition: transform 0.12s ease, opacity 0.12s ease;
-    }
-    button:hover { transform: translateY(-1px); opacity: 0.94; }
-    button.secondary { background: #334155; }
-    button.danger { background: #b91c1c; }
-    button.success { background: #15803d; }
-    button.warning { background: #ca8a04; color: #111827; }
-
-    .tabs { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
-    .tab { flex: 1; min-width: 160px; }
-    .hidden { display: none !important; }
-
-    table { width: 100%; border-collapse: collapse; overflow: hidden; border-radius: 12px; }
-    th, td { border-bottom: 1px solid var(--border); padding: 10px; text-align: left; vertical-align: middle; font-size: 14px; }
-    th { color: #cbd5e1; background: rgba(30, 41, 59, 0.9); position: sticky; top: 0; z-index: 1; }
-    tr:hover td { background: rgba(51, 65, 85, 0.35); }
-    .scroll { overflow-x: auto; border-radius: 12px; border: 1px solid var(--border); }
-
-    .pill { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 5px 10px; font-size: 13px; background: #334155; color: #e2e8f0; }
-    .green { color: var(--green); }
-    .blue { color: var(--blue); }
-    .red { color: var(--red); }
-    .yellow { color: var(--yellow); }
-    .status-exact { background: rgba(34,197,94,0.18); }
-    .status-outcome { background: rgba(56,189,248,0.15); }
-    .status-wrong { background: rgba(239,68,68,0.14); }
-    .small { color: var(--muted); font-size: 13px; }
-    .match-title { font-weight: 700; margin-bottom: 5px; }
-    .subtle-box { background: rgba(2, 6, 23, 0.55); border: 1px solid var(--border); border-radius: 14px; padding: 12px; }
-    .row-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-    .row-actions button { width: auto; min-width: 120px; }
-    .guess-inputs { display: grid; grid-template-columns: 90px 80px 80px; gap: 8px; min-width: 260px; }
-    .footer-note { text-align: center; color: var(--muted); font-size: 12px; padding: 24px; }
-
-    @media (max-width: 650px) {
-      header h1 { font-size: 25px; }
-      th, td { font-size: 13px; padding: 8px; }
-      .guess-inputs { grid-template-columns: 1fr; }
-      .row-actions button { width: 100%; }
-    }
-  </style>
+  <title>World Cup 2026 TAE Guess Tournament</title>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <header>
@@ -100,35 +14,62 @@
 
   <div class="container">
     <div class="tabs">
-      <button class="tab" onclick="showView('participant')">Participant</button>
+      <button class="tab" onclick="showView('home')">Home</button>
+      <button class="tab secondary" onclick="showView('myPredictions')">My Predictions</button>
       <button class="tab secondary" onclick="showView('leaderboard')">Leaderboard</button>
-      <button class="tab secondary" onclick="showView('overview')">Prediction Overview</button>
+      <button class="tab secondary" onclick="showView('overview')">All Predictions</button>
       <button class="tab warning" onclick="openAdminLogin()">Admin</button>
     </div>
 
-    <section id="participantView" class="card">
+    <section id="homeView" class="card">
       <h2>Participant Login</h2>
+      <p class="small">Create your profile and then submit your World Cup predictions.</p>
       <div class="grid">
-        <div><label>Terma Initials</label><input id="initials" placeholder="e.g. LELO" maxlength="8" /></div>
-        <div><label>Full name</label><input id="fullName" placeholder="e.g. Jesper Løhr" /></div>
-        <div><label>Top scorer prediction</label><input id="topScorerGuess" placeholder="e.g. Mbappé" /></div>
-        <div style="align-self:end;"><button onclick="loginParticipant()">Log in / Submit predictions</button></div>
+        <div>
+          <label>Initials</label>
+          <input id="initials" placeholder="e.g. GN" maxlength="8" />
+        </div>
+        <div>
+          <label>Full name</label>
+          <input id="fullName" placeholder="e.g. Gustaf Nørgaard" />
+        </div>
+        <div>
+          <label>Top scorer prediction</label>
+          <input id="topScorerGuess" placeholder="e.g. Mbappé" />
+        </div>
+        <div style="align-self:end;">
+          <button onclick="loginParticipant()">Create profile / Continue</button>
+        </div>
       </div>
+    </section>
 
-      <div id="participantPanel" class="hidden" style="margin-top:18px;">
+    <section id="myPredictionsView" class="card hidden">
+      <h2>My Predictions</h2>
+      <div id="participantPanel" class="hidden">
         <div class="subtle-box">
           <div class="row-actions">
             <span class="pill">Participant: <strong id="activeParticipantName"></strong></span>
-            <span class="pill">Saved automatically in this browser</span>
+            <span class="pill">Predictions are saved automatically in this browser</span>
           </div>
         </div>
         <h3>Matches</h3>
         <div class="scroll">
           <table>
-            <thead><tr><th>Match</th><th>Your prediction</th><th>Result</th><th>Points</th></tr></thead>
+            <thead>
+              <tr>
+                <th>Match</th>
+                <th>Your prediction</th>
+                <th>Result</th>
+                <th>Points</th>
+              </tr>
+            </thead>
             <tbody id="participantMatches"></tbody>
           </table>
         </div>
+      </div>
+      <div id="notLoggedInBox" class="subtle-box">
+        <strong>You are not logged in yet.</strong><br />
+        <span class="small">Go to Home and create your participant profile first.</span>
       </div>
     </section>
 
@@ -144,7 +85,16 @@
       <div class="scroll">
         <table>
           <thead>
-            <tr><th>#</th><th>Initials</th><th>Name</th><th>Points</th><th>Exact scores</th><th>Correct outcomes</th><th>Predicted matches</th><th>Top scorer</th></tr>
+            <tr>
+              <th>#</th>
+              <th>Initials</th>
+              <th>Name</th>
+              <th>Points</th>
+              <th>Exact scores</th>
+              <th>Correct outcomes</th>
+              <th>Predicted matches</th>
+              <th>Top scorer</th>
+            </tr>
           </thead>
           <tbody id="leaderboardBody"></tbody>
         </table>
@@ -160,8 +110,13 @@
     <section id="adminLoginView" class="card hidden">
       <h2>Admin Login</h2>
       <div class="grid">
-        <div><label>Admin password</label><input id="adminCode" type="password" placeholder="Enter password" /></div>
-        <div style="align-self:end;"><button onclick="adminLogin()">Log in as admin</button></div>
+        <div>
+          <label>Admin password</label>
+          <input id="adminCode" type="password" placeholder="Enter password" />
+        </div>
+        <div style="align-self:end;">
+          <button onclick="adminLogin()">Log in as admin</button>
+        </div>
       </div>
       <p class="small">Default password: vm2026-G</p>
     </section>
@@ -177,7 +132,7 @@
         <input id="importFile" type="file" accept="application/json" class="hidden" onchange="importJSON(event)" />
       </div>
 
-      <hr style="border-color: var(--border); margin:18px 0;">
+      <hr class="divider" />
 
       <h3>Add Match</h3>
       <div class="grid">
@@ -205,302 +160,15 @@
       <h3>Participants</h3>
       <div class="scroll">
         <table>
-          <thead><tr><th>Initials</th><th>Name</th><th>Top scorer prediction</th><th>Predicted matches</th><th>Action</th></tr></thead>
+          <thead><tr><th>Initials</th><th>Name</th><th>Top scorer prediction</th><th>Predicted matches</th><th>Points</th><th>Action</th></tr></thead>
           <tbody id="adminParticipants"></tbody>
         </table>
       </div>
     </section>
   </div>
 
-  <div class="footer-note">Data is saved in this browser's localStorage. Use export/import for backup or transfer between devices.</div>
+  <div class="footer-note">Data is saved in this browser's localStorage. A shared online database will be added in a later version.</div>
 
-<script>
-  const STORAGE_KEY = 'world_cup_2026_betting_pool_v1';
-  const ADMIN_CODE = 'vm2026-G';
-  let activeParticipant = null;
-
-  const defaultData = { matches: [], participants: {}, guesses: {}, officialTopScorer: '' };
-
-  function loadData() {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return structuredClone(defaultData);
-    try { return { ...structuredClone(defaultData), ...JSON.parse(raw) }; }
-    catch { return structuredClone(defaultData); }
-  }
-
-  function saveData(data) { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); renderAll(); }
-  function uid() { return 'm_' + Date.now() + '_' + Math.random().toString(16).slice(2); }
-  function normalize(text) { return (text || '').trim().toLowerCase(); }
-
-  function outcome(home, away) {
-    const h = Number(home), a = Number(away);
-    if (Number.isNaN(h) || Number.isNaN(a)) return '';
-    if (h > a) return '1';
-    if (h === a) return 'X';
-    return '2';
-  }
-
-  function getMatchPoints(match, guess) {
-    if (!guess || match.homeScore === '' || match.awayScore === '' || match.homeScore === undefined || match.awayScore === undefined) {
-      return { points: 0, exact: false, outcomeCorrect: false, status: '' };
-    }
-    const gh = Number(guess.homeScore), ga = Number(guess.awayScore), mh = Number(match.homeScore), ma = Number(match.awayScore);
-    if ([gh, ga, mh, ma].some(Number.isNaN)) return { points: 0, exact: false, outcomeCorrect: false, status: '' };
-    const exact = gh === mh && ga === ma;
-    const outcomeCorrect = outcome(gh, ga) === outcome(mh, ma);
-    if (exact) return { points: 3, exact: true, outcomeCorrect: true, status: 'exact' };
-    if (outcomeCorrect) return { points: 1, exact: false, outcomeCorrect: true, status: 'outcome' };
-    return { points: 0, exact: false, outcomeCorrect: false, status: 'wrong' };
-  }
-
-  function getParticipantStats(initials) {
-    const data = loadData();
-    const participant = data.participants[initials];
-    const guesses = data.guesses[initials] || {};
-    let points = 0, exacts = 0, outcomes = 0, guessed = 0;
-    data.matches.forEach(match => {
-      const guess = guesses[match.id];
-      if (guess && guess.homeScore !== '' && guess.awayScore !== '') guessed++;
-      const result = getMatchPoints(match, guess);
-      points += result.points;
-      if (result.exact) exacts++;
-      else if (result.outcomeCorrect) outcomes++;
-    });
-    const topScorerCorrect = normalize(participant?.topScorerGuess) && normalize(participant?.topScorerGuess) === normalize(data.officialTopScorer);
-    if (topScorerCorrect) points += 20;
-    return { points, exacts, outcomes, guessed, topScorerCorrect };
-  }
-
-  function showView(view) {
-    ['participantView', 'leaderboardView', 'overviewView', 'adminLoginView', 'adminView'].forEach(id => document.getElementById(id).classList.add('hidden'));
-    document.getElementById(view + 'View').classList.remove('hidden');
-    renderAll();
-  }
-  function openAdminLogin() { showView('adminLogin'); }
-  function adminLogin() {
-    if (document.getElementById('adminCode').value === ADMIN_CODE) showView('admin');
-    else alert('Incorrect admin password');
-  }
-
-  function loginParticipant() {
-    const initials = document.getElementById('initials').value.trim().toUpperCase();
-    const fullName = document.getElementById('fullName').value.trim();
-    const topScorerGuess = document.getElementById('topScorerGuess').value.trim();
-    if (!initials || !fullName) { alert('Please enter both initials and full name.'); return; }
-    const data = loadData();
-    data.participants[initials] = { initials, fullName, topScorerGuess, updatedAt: new Date().toISOString() };
-    data.guesses[initials] ||= {};
-    activeParticipant = initials;
-    saveData(data);
-    document.getElementById('participantPanel').classList.remove('hidden');
-    document.getElementById('activeParticipantName').textContent = `${initials} - ${fullName}`;
-  }
-
-  function saveGuess(matchId, field, value) {
-    if (!activeParticipant) return;
-    const data = loadData();
-    data.guesses[activeParticipant] ||= {};
-    data.guesses[activeParticipant][matchId] ||= { pick: '', homeScore: '', awayScore: '' };
-    data.guesses[activeParticipant][matchId][field] = value;
-    const g = data.guesses[activeParticipant][matchId];
-    if (g.homeScore !== '' && g.awayScore !== '') g.pick = outcome(g.homeScore, g.awayScore);
-    saveData(data);
-  }
-
-  function addMatch() {
-    const date = document.getElementById('matchDate').value.trim();
-    const round = document.getElementById('matchRound').value.trim();
-    const home = document.getElementById('homeTeam').value.trim();
-    const away = document.getElementById('awayTeam').value.trim();
-    if (!home || !away) { alert('Please enter both home team and away team.'); return; }
-    const data = loadData();
-    data.matches.push({ id: uid(), date, round, home, away, homeScore: '', awayScore: '' });
-    saveData(data);
-    ['matchDate','matchRound','homeTeam','awayTeam'].forEach(id => document.getElementById(id).value = '');
-  }
-
-  function updateMatch(matchId, field, value) {
-    const data = loadData();
-    const match = data.matches.find(m => m.id === matchId);
-    if (!match) return;
-    match[field] = value;
-    saveData(data);
-  }
-
-  function deleteMatch(matchId) {
-    if (!confirm('Delete this match?')) return;
-    const data = loadData();
-    data.matches = data.matches.filter(m => m.id !== matchId);
-    Object.keys(data.guesses).forEach(initials => delete data.guesses[initials][matchId]);
-    saveData(data);
-  }
-
-  function deleteParticipant(initials) {
-    if (!confirm(`Delete participant ${initials}?`)) return;
-    const data = loadData();
-    delete data.participants[initials];
-    delete data.guesses[initials];
-    saveData(data);
-  }
-
-  function saveOfficialTopScorer() {
-    const data = loadData();
-    data.officialTopScorer = document.getElementById('officialTopScorer').value.trim();
-    saveData(data);
-  }
-
-  function renderParticipantMatches() {
-    const tbody = document.getElementById('participantMatches');
-    tbody.innerHTML = '';
-    const data = loadData();
-    if (!activeParticipant) return;
-    const guesses = data.guesses[activeParticipant] || {};
-    data.matches.forEach(match => {
-      const guess = guesses[match.id] || { pick: '', homeScore: '', awayScore: '' };
-      const result = getMatchPoints(match, guess);
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td><div class="match-title">${escapeHtml(match.home)} - ${escapeHtml(match.away)}</div><div class="small">${escapeHtml(match.round || '')} ${escapeHtml(match.date || '')}</div></td>
-        <td><div class="guess-inputs">
-          <select onchange="saveGuess('${match.id}', 'pick', this.value)">
-            <option value="" ${guess.pick === '' ? 'selected' : ''}>Select</option>
-            <option value="1" ${guess.pick === '1' ? 'selected' : ''}>1</option>
-            <option value="X" ${guess.pick === 'X' ? 'selected' : ''}>X</option>
-            <option value="2" ${guess.pick === '2' ? 'selected' : ''}>2</option>
-          </select>
-          <input type="number" min="0" placeholder="Home" value="${escapeAttr(guess.homeScore)}" onchange="saveGuess('${match.id}', 'homeScore', this.value)">
-          <input type="number" min="0" placeholder="Away" value="${escapeAttr(guess.awayScore)}" onchange="saveGuess('${match.id}', 'awayScore', this.value)">
-        </div></td>
-        <td>${formatResult(match)}</td><td>${result.points}</td>`;
-      tbody.appendChild(tr);
-    });
-  }
-
-  function renderLeaderboard() {
-    const data = loadData();
-    const tbody = document.getElementById('leaderboardBody');
-    tbody.innerHTML = '';
-    const rows = Object.keys(data.participants).map(initials => ({ ...data.participants[initials], ...getParticipantStats(initials) }))
-      .sort((a, b) => b.points - a.points || b.exacts - a.exacts || b.outcomes - a.outcomes);
-    rows.forEach((row, index) => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${index + 1}</td><td><strong>${escapeHtml(row.initials)}</strong></td><td>${escapeHtml(row.fullName)}</td><td><strong>${row.points}</strong></td><td class="green">${row.exacts}</td><td class="blue">${row.outcomes}</td><td>${row.guessed}</td><td>${row.topScorerCorrect ? '✅ +20' : escapeHtml(row.topScorerGuess || '-')}</td>`;
-      tbody.appendChild(tr);
-    });
-    const totalGuesses = Object.keys(data.participants).reduce((sum, initials) => sum + getParticipantStats(initials).guessed, 0);
-    const completedMatches = data.matches.filter(m => m.homeScore !== '' && m.awayScore !== '').length;
-    document.getElementById('participantCount').textContent = rows.length;
-    document.getElementById('poolSize').textContent = `${rows.length * 50} DKK`;
-    document.getElementById('totalGuesses').textContent = totalGuesses;
-    document.getElementById('completedMatches').textContent = completedMatches;
-  }
-
-  function renderOverview() {
-    const data = loadData();
-    const table = document.getElementById('overviewTable');
-    const participants = Object.keys(data.participants).sort();
-    let html = '<thead><tr><th>Match</th><th>Result</th>';
-    participants.forEach(p => html += `<th>${escapeHtml(p)}</th>`);
-    html += '</tr></thead><tbody>';
-    data.matches.forEach(match => {
-      html += `<tr><td><strong>${escapeHtml(match.home)} - ${escapeHtml(match.away)}</strong><br><span class="small">${escapeHtml(match.round || '')} ${escapeHtml(match.date || '')}</span></td><td>${formatResult(match)}</td>`;
-      participants.forEach(initials => {
-        const guess = data.guesses[initials]?.[match.id];
-        const result = getMatchPoints(match, guess);
-        let cls = '', icon = '';
-        if (result.status === 'exact') { cls = 'status-exact'; icon = '✅'; }
-        if (result.status === 'outcome') { cls = 'status-outcome'; icon = '🔵'; }
-        if (result.status === 'wrong') { cls = 'status-wrong'; icon = '❌'; }
-        const guessText = guess && guess.homeScore !== '' && guess.awayScore !== '' ? `${guess.homeScore}-${guess.awayScore} (${guess.pick || outcome(guess.homeScore, guess.awayScore)})` : '-';
-        html += `<td class="${cls}">${icon} ${escapeHtml(guessText)}</td>`;
-      });
-      html += '</tr>';
-    });
-    table.innerHTML = html + '</tbody>';
-  }
-
-  function renderAdmin() {
-    const data = loadData();
-    const matchBody = document.getElementById('adminMatches');
-    matchBody.innerHTML = '';
-    data.matches.forEach(match => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td><input value="${escapeAttr(match.date || '')}" onchange="updateMatch('${match.id}', 'date', this.value)"></td><td><input value="${escapeAttr(match.round || '')}" onchange="updateMatch('${match.id}', 'round', this.value)"></td><td><input value="${escapeAttr(match.home)}" onchange="updateMatch('${match.id}', 'home', this.value)" style="margin-bottom:6px;"><input value="${escapeAttr(match.away)}" onchange="updateMatch('${match.id}', 'away', this.value)"></td><td><div class="guess-inputs" style="grid-template-columns:80px 80px; min-width:170px;"><input type="number" min="0" placeholder="Home" value="${escapeAttr(match.homeScore)}" onchange="updateMatch('${match.id}', 'homeScore', this.value)"><input type="number" min="0" placeholder="Away" value="${escapeAttr(match.awayScore)}" onchange="updateMatch('${match.id}', 'awayScore', this.value)"></div></td><td><button class="danger" onclick="deleteMatch('${match.id}')">Delete</button></td>`;
-      matchBody.appendChild(tr);
-    });
-    const participantBody = document.getElementById('adminParticipants');
-    participantBody.innerHTML = '';
-    Object.keys(data.participants).sort().forEach(initials => {
-      const p = data.participants[initials];
-      const stats = getParticipantStats(initials);
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td><strong>${escapeHtml(initials)}</strong></td><td>${escapeHtml(p.fullName)}</td><td>${escapeHtml(p.topScorerGuess || '-')}</td><td>${stats.guessed}</td><td><button class="danger" onclick="deleteParticipant('${initials}')">Delete</button></td>`;
-      participantBody.appendChild(tr);
-    });
-    document.getElementById('officialTopScorer').value = data.officialTopScorer || '';
-  }
-
-  function renderAll() { renderParticipantMatches(); renderLeaderboard(); renderOverview(); renderAdmin(); }
-  function formatResult(match) {
-    if (match.homeScore === '' || match.awayScore === '' || match.homeScore === undefined || match.awayScore === undefined) return '<span class="small">Not played yet</span>';
-    return `<strong>${escapeHtml(match.homeScore)}-${escapeHtml(match.awayScore)}</strong>`;
-  }
-
-  function seedExampleMatches() {
-    const data = loadData();
-    if (data.matches.length && !confirm('Matches already exist. Add sample matches anyway?')) return;
-    [['2026-06-11 21:00','Group A','Mexico','South Africa'],['2026-06-12 18:00','Group A','USA','Canada'],['2026-06-13 21:00','Group B','Denmark','Germany'],['2026-06-14 21:00','Group B','Argentina','France']]
-      .forEach(([date, round, home, away]) => data.matches.push({ id: uid(), date, round, home, away, homeScore: '', awayScore: '' }));
-    saveData(data);
-  }
-
-  function exportCSV() {
-    const data = loadData();
-    const rows = [];
-    rows.push(['Type','Initials','Name','Top scorer prediction','Match','Date','Round','Prediction','Match result','Points','Exact score','Correct outcome']);
-    Object.keys(data.participants).forEach(initials => {
-      const p = data.participants[initials];
-      data.matches.forEach(match => {
-        const guess = data.guesses[initials]?.[match.id];
-        const result = getMatchPoints(match, guess);
-        rows.push(['Prediction', initials, p.fullName, p.topScorerGuess || '', `${match.home} - ${match.away}`, match.date || '', match.round || '', guess ? `${guess.homeScore}-${guess.awayScore} (${guess.pick || ''})` : '', match.homeScore !== '' && match.awayScore !== '' ? `${match.homeScore}-${match.awayScore}` : '', result.points, result.exact ? 'Yes' : 'No', result.outcomeCorrect ? 'Yes' : 'No']);
-      });
-    });
-    rows.push([]);
-    rows.push(['Leaderboard','Initials','Name','Points','Exact scores','Correct outcomes','Predicted matches','Top scorer bonus']);
-    Object.keys(data.participants).map(initials => ({ initials, ...data.participants[initials], ...getParticipantStats(initials) }))
-      .sort((a,b) => b.points - a.points).forEach(p => rows.push(['Leaderboard', p.initials, p.fullName, p.points, p.exacts, p.outcomes, p.guessed, p.topScorerCorrect ? 'Yes' : 'No']));
-    downloadFile('world-cup-2026-betting-pool.csv', rows.map(r => r.map(csvEscape).join(';')).join('\n'), 'text/csv;charset=utf-8');
-  }
-
-  function exportJSON() { downloadFile('world-cup-2026-backup.json', JSON.stringify(loadData(), null, 2), 'application/json'); }
-  function importJSON(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = e => {
-      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(JSON.parse(e.target.result))); renderAll(); alert('Backup imported.'); }
-      catch { alert('The file could not be imported.'); }
-    };
-    reader.readAsText(file);
-  }
-  function resetAllData() {
-    if (!confirm('Are you sure? All matches, participants and predictions will be deleted in this browser.')) return;
-    localStorage.removeItem(STORAGE_KEY);
-    activeParticipant = null;
-    document.getElementById('participantPanel').classList.add('hidden');
-    renderAll();
-  }
-  function downloadFile(filename, content, mime) {
-    const blob = new Blob([content], { type: mime });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = filename; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
-  }
-  function csvEscape(value) { return '"' + String(value ?? '').replaceAll('"', '""') + '"'; }
-  function escapeHtml(value) { return String(value ?? '').replace(/[&<>'"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[c])); }
-  function escapeAttr(value) { return escapeHtml(value); }
-  renderAll();
-</script>
+  <script src="app.js"></script>
 </body>
 </html>
