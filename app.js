@@ -651,9 +651,13 @@ function renderLeaderboard() {
   rows.forEach((row, index) => {
     const tr = document.createElement('tr');
     const medal = getLeaderboardMedal(index);
+    const topScorerPick = row.topScorerGuess && row.topScorerGuess.trim() !== ''
+      ? escapeHtml(row.topScorerGuess)
+      : '-';
+
     const topScorerText = row.topScorerCorrect
-      ? '✅ +20'
-      : escapeHtml(row.topScorerGuess || '-');
+      ? `${topScorerPick} ✅ +20`
+      : topScorerPick;
 
     tr.innerHTML = `
       <td><strong>${medal} ${index + 1}</strong></td>
