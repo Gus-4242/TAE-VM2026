@@ -158,6 +158,39 @@ function normalize(text) {
   return String(text || '').trim().toLowerCase();
 }
 
+function parseMatchDate(match) {
+  if (!match.date) {
+    return null;
+  }
+
+  const normalizedDate = String(match.date).trim().replace(' ', 'T');
+  const parsedDate = new Date(normalizedDate);
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    return null;
+  }
+
+  return parsedDate;
+}
+
+function isMatchLocked(match) {
+  const matchDate = parseMatchDate(match);
+
+  if (!matchDate) {
+    return false;
+  }
+
+  return new Date() >= matchDate;
+}
+
+function getLockLabel(match) {
+  if (isMatchLocked(match)) {
+    return '<span class="small red">🔒 Locked after kickoff</span>';
+  }
+
+  return '<span class="small green">🟢 Open for predictions</span>';
+}
+
 function getMatchPoints(match, guess) {
   if (
     !guess ||
@@ -264,23 +297,26 @@ function renderParticipantMatches() {
   data.matches.forEach(match => {
     const guess = guesses[match.id] || { pick: '', homeScore: '', awayScore: '' };
     const result = getMatchPoints(match, guess);
+    const locked = isMatchLocked(match);
+    const disabled = locked ? 'disabled' : '';
     const row = document.createElement('tr');
 
     row.innerHTML = `
       <td>
         <strong>${escapeHtml(match.home)} - ${escapeHtml(match.away)}</strong><br>
-        <span class="small">${escapeHtml(match.round || '')} ${escapeHtml(match.date || '')}</span>
+        <span class="small">${escapeHtml(match.round || '')} ${escapeHtml(match.date || '')}</span><br>
+        ${getLockLabel(match)}
       </td>
       <td>
         <div class="guess-inputs">
-          <select onchange="saveGuess('${match.id}', 'pick', this.value)">
+          <select ${disabled} onchange="saveGuess('${match.id}', 'pick', this.value)">
             <option value="" ${guess.pick === '' ? 'selected' : ''}>Select</option>
             <option value="1" ${guess.pick === '1' ? 'selected' : ''}>1</option>
             <option value="X" ${guess.pick === 'X' ? 'selected' : ''}>X</option>
             <option value="2" ${guess.pick === '2' ? 'selected' : ''}>2</option>
           </select>
-          <input type="number" min="0" placeholder="Home" value="${escapeAttr(guess.homeScore)}" onchange="saveGuess('${match.id}', 'homeScore', this.value)">
-          <input type="number" min="0" placeholder="Away" value="${escapeAttr(guess.awayScore)}" onchange="saveGuess('${match.id}', 'awayScore', this.value)">
+          <input type="number" min="0" placeholder="Home" value="${escapeAttr(guess.homeScore)}" ${disabled} onchange="saveGuess('${match.id}', 'homeScore', this.value)">
+          <input type="number" min="0" placeholder="Away" value="${escapeAttr(guess.awayScore)}" ${disabled} onchange="saveGuess('${match.id}', 'awayScore', this.value)">
         </div>
       </td>
       <td>${formatMatchResult(match)}</td>
@@ -301,6 +337,13 @@ function saveGuess(matchId, field, value) {
   }
 
   const data = loadData();
+  const match = data.matches.find(item => item.id === matchId);
+
+  if (match && isMatchLocked(match)) {
+    alert('This match is locked. Please contact Admin if changes are needed.');
+    renderAll();
+    return;
+  }
 
   data.guesses[activeParticipant] ||= {};
   data.guesses[activeParticipant][matchId] ||= { pick: '', homeScore: '', awayScore: '' };
@@ -425,6 +468,7 @@ function renderAdminMatches() {
       <td>
         <input value="${escapeAttr(match.home)}" onchange="updateMatch('${match.id}', 'home', this.value)" style="margin-bottom:6px;">
         <input value="${escapeAttr(match.away)}" onchange="updateMatch('${match.id}', 'away', this.value)">
+        <div>${getLockLabel(match)}</div>
       </td>
       <td>
         <div class="guess-inputs" style="grid-template-columns:80px 80px; min-width:170px;">
@@ -503,7 +547,8 @@ function renderAdminPredictions() {
         <td>${escapeHtml(participant.initials)} - ${escapeHtml(participant.fullName)}</td>
         <td>
           ${escapeHtml(match.home)} - ${escapeHtml(match.away)}<br>
-          <span class="small">${escapeHtml(match.round || '')} ${escapeHtml(match.date || '')}</span>
+          <span class="small">${escapeHtml(match.round || '')} ${escapeHtml(match.date || '')}</span><br>
+          ${getLockLabel(match)}
         </td>
         <td>
           <div class="guess-inputs" style="grid-template-columns:80px 80px; min-width:170px;">
@@ -630,7 +675,8 @@ function renderOverview() {
       <tr>
         <td>
           <strong>${escapeHtml(match.home)} - ${escapeHtml(match.away)}</strong><br>
-          <span class="small">${escapeHtml(match.round || '')} ${escapeHtml(match.date || '')}</span>
+          <span class="small">${escapeHtml(match.round || '')} ${escapeHtml(match.date || '')}</span><br>
+          ${getLockLabel(match)}
         </td>
         <td>${formatMatchResult(match)}</td>
     `;
