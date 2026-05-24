@@ -581,11 +581,97 @@ function renderAdminParticipants() {
 }
 
 function renderAdminPredictions() {
+  function renderAdminPredictions() {
   const tbody = document.getElementById('adminPredictions');
 
-  if (!tbody) {
-    return;
+  if (!tbody) return;
+
+  tbody.innerHTML = '';
+
+  const data = loadData();
+
+  Object.keys(data.participants).sort().forEach(initials => {
+    const participant = data.participants[initials];
+    const guesses = data.guesses[initials] || {};
+
+    data.matches.forEach(match => {
+      const guess = guesses[match.id] || {
+        pick: '',
+        homeScore: '',
+        awayScore: ''
+      };
+
+      const points = getMatchPoints(match, guess).points;
+
+      const row = document.createElement('tr');
+
+      row.innerHTML = `
+        <td>${escapeHtml(participant.initials)} - ${escapeHtml(participant.fullName)}</td>
+
+        <td>
+          ${escapeHtml(match.home)} - ${escapeHtml(match.away)}<br>
+          <span class="small">${escapeHtml(match.round || '')} ${escapeHtml(match.date || '')}</span>
+        </td>
+
+        <td>
+          <div class="guess-inputs">
+            <input
+              type="number"
+              min="0"
+              placeholder="Home"
+              value="${escapeAttr(guess.homeScore)}"
+              onchange="updateAdminPrediction('${initials}', '${match.id}', 'homeScore', this.value)"
+            >
+
+            <input
+              type="number"
+              min="0"
+              placeholder="Away"
+              value="${escapeAttr(guess.awayScore)}"
+              onchange="updateAdminPrediction('${initials}', '${match.id}', 'awayScore', this.value)"
+            >
+          </div>
+        </td>
+
+        <td>
+          <select onchange="updateAdminPrediction('${initials}', '${match.id}', 'pick', this.value)">
+            <option value="" ${guess.pick === '' ? 'selected' : ''}>Select</option>
+            <option value="1" ${guess.pick === '1' ? 'selected' : ''}>1</option>
+            <option value="X" ${guess.pick === 'X' ? 'selected' : ''}>X</option>
+            <option value="2" ${guess.pick === '2' ? 'selected' : ''}>2</option>
+          </select>
+        </td>
+
+        <td>${formatMatchResult(match)}</td>
+
+        <td>${points}</td>
+      `;
+
+      tbody.appendChild(row);
+    });
+  });
+}
+function updateAdminPrediction(initials, matchId, field, value) {
+  const data = loadData();
+
+  data.guesses[initials] ||= {};
+
+  data.guesses[initials][matchId] ||= {
+    pick: '',
+    homeScore: '',
+    awayScore: ''
+  };
+
+  data.guesses[initials][matchId][field] = value;
+
+  const guess = data.guesses[initials][matchId];
+
+  if (guess.homeScore !== '' && guess.awayScore !== '') {
+    guess.pick = outcome(guess.homeScore, guess.awayScore);
   }
+
+  saveData(data);
+}  }
 
   tbody.innerHTML = '';
 
