@@ -43,10 +43,18 @@ function showView(view) {
   ];
 
   views.forEach(id => {
-    document.getElementById(id).classList.add('hidden');
+    const element = document.getElementById(id);
+    if (element) {
+      element.classList.add('hidden');
+    }
   });
 
-  document.getElementById(view + 'View').classList.remove('hidden');
+  const targetView = document.getElementById(view + 'View');
+
+  if (targetView) {
+    targetView.classList.remove('hidden');
+  }
+
   renderAll();
 }
 
@@ -55,7 +63,8 @@ function openAdminLogin() {
 }
 
 function adminLogin() {
-  const code = document.getElementById('adminCode').value;
+  const codeInput = document.getElementById('adminCode');
+  const code = codeInput ? codeInput.value : '';
 
   if (code === ADMIN_CODE) {
     showView('admin');
@@ -65,21 +74,13 @@ function adminLogin() {
 }
 
 function loginParticipant() {
-  const initials = document
-    .getElementById('initials')
-    .value
-    .trim()
-    .toUpperCase();
+  const initialsInput = document.getElementById('initials');
+  const fullNameInput = document.getElementById('fullName');
+  const topScorerInput = document.getElementById('topScorerGuess');
 
-  const fullName = document
-    .getElementById('fullName')
-    .value
-    .trim();
-
-  const topScorerGuess = document
-    .getElementById('topScorerGuess')
-    .value
-    .trim();
+  const initials = initialsInput.value.trim().toUpperCase();
+  const fullName = fullNameInput.value.trim();
+  const topScorerGuess = topScorerInput.value.trim();
 
   if (!initials || !fullName) {
     alert('Please enter initials and full name');
@@ -97,17 +98,14 @@ function loginParticipant() {
   };
 
   data.guesses[initials] ||= {};
-
   activeParticipant = initials;
 
   saveData(data);
-  updateParticipantStatus();
   showView('myPredictions');
 }
 
 function updateParticipantStatus() {
   const data = loadData();
-
   const participantPanel = document.getElementById('participantPanel');
   const notLoggedInBox = document.getElementById('notLoggedInBox');
   const activeParticipantName = document.getElementById('activeParticipantName');
@@ -170,12 +168,7 @@ function getMatchPoints(match, guess) {
     match.homeScore === undefined ||
     match.awayScore === undefined
   ) {
-    return {
-      points: 0,
-      exact: false,
-      outcomeCorrect: false,
-      status: ''
-    };
+    return { points: 0, exact: false, outcomeCorrect: false, status: '' };
   }
 
   const predictedHome = Number(guess.homeScore);
@@ -184,41 +177,21 @@ function getMatchPoints(match, guess) {
   const actualAway = Number(match.awayScore);
 
   if ([predictedHome, predictedAway, actualHome, actualAway].some(Number.isNaN)) {
-    return {
-      points: 0,
-      exact: false,
-      outcomeCorrect: false,
-      status: ''
-    };
+    return { points: 0, exact: false, outcomeCorrect: false, status: '' };
   }
 
   const exact = predictedHome === actualHome && predictedAway === actualAway;
   const outcomeCorrect = outcome(predictedHome, predictedAway) === outcome(actualHome, actualAway);
 
   if (exact) {
-    return {
-      points: 3,
-      exact: true,
-      outcomeCorrect: true,
-      status: 'exact'
-    };
+    return { points: 3, exact: true, outcomeCorrect: true, status: 'exact' };
   }
 
   if (outcomeCorrect) {
-    return {
-      points: 1,
-      exact: false,
-      outcomeCorrect: true,
-      status: 'outcome'
-    };
+    return { points: 1, exact: false, outcomeCorrect: true, status: 'outcome' };
   }
 
-  return {
-    points: 0,
-    exact: false,
-    outcomeCorrect: false,
-    status: 'wrong'
-  };
+  return { points: 0, exact: false, outcomeCorrect: false, status: 'wrong' };
 }
 
 function getParticipantStats(initials) {
@@ -239,7 +212,6 @@ function getParticipantStats(initials) {
     }
 
     const result = getMatchPoints(match, guess);
-
     points += result.points;
 
     if (result.exact) {
@@ -257,13 +229,7 @@ function getParticipantStats(initials) {
     points += 20;
   }
 
-  return {
-    points,
-    exacts,
-    outcomes,
-    guessed,
-    topScorerCorrect
-  };
+  return { points, exacts, outcomes, guessed, topScorerCorrect };
 }
 
 function renderParticipantMatches() {
@@ -274,7 +240,6 @@ function renderParticipantMatches() {
   }
 
   tbody.innerHTML = '';
-
   const data = loadData();
 
   if (!activeParticipant) {
@@ -292,18 +257,13 @@ function renderParticipantMatches() {
       </td>
     `;
     tbody.appendChild(row);
+    updateParticipantStatus();
     return;
   }
 
   data.matches.forEach(match => {
-    const guess = guesses[match.id] || {
-      pick: '',
-      homeScore: '',
-      awayScore: ''
-    };
-
+    const guess = guesses[match.id] || { pick: '', homeScore: '', awayScore: '' };
     const result = getMatchPoints(match, guess);
-
     const row = document.createElement('tr');
 
     row.innerHTML = `
@@ -311,7 +271,6 @@ function renderParticipantMatches() {
         <strong>${escapeHtml(match.home)} - ${escapeHtml(match.away)}</strong><br>
         <span class="small">${escapeHtml(match.round || '')} ${escapeHtml(match.date || '')}</span>
       </td>
-
       <td>
         <div class="guess-inputs">
           <select onchange="saveGuess('${match.id}', 'pick', this.value)">
@@ -320,25 +279,10 @@ function renderParticipantMatches() {
             <option value="X" ${guess.pick === 'X' ? 'selected' : ''}>X</option>
             <option value="2" ${guess.pick === '2' ? 'selected' : ''}>2</option>
           </select>
-
-          <input
-            type="number"
-            min="0"
-            placeholder="Home"
-            value="${escapeAttr(guess.homeScore)}"
-            onchange="saveGuess('${match.id}', 'homeScore', this.value)"
-          >
-
-          <input
-            type="number"
-            min="0"
-            placeholder="Away"
-            value="${escapeAttr(guess.awayScore)}"
-            onchange="saveGuess('${match.id}', 'awayScore', this.value)"
-          >
+          <input type="number" min="0" placeholder="Home" value="${escapeAttr(guess.homeScore)}" onchange="saveGuess('${match.id}', 'homeScore', this.value)">
+          <input type="number" min="0" placeholder="Away" value="${escapeAttr(guess.awayScore)}" onchange="saveGuess('${match.id}', 'awayScore', this.value)">
         </div>
       </td>
-
       <td>${formatMatchResult(match)}</td>
       <td>${result.points}</td>
     `;
@@ -359,13 +303,7 @@ function saveGuess(matchId, field, value) {
   const data = loadData();
 
   data.guesses[activeParticipant] ||= {};
-
-  data.guesses[activeParticipant][matchId] ||= {
-    pick: '',
-    homeScore: '',
-    awayScore: ''
-  };
-
+  data.guesses[activeParticipant][matchId] ||= { pick: '', homeScore: '', awayScore: '' };
   data.guesses[activeParticipant][matchId][field] = value;
 
   const guess = data.guesses[activeParticipant][matchId];
@@ -422,7 +360,6 @@ function updateMatch(matchId, field, value) {
   }
 
   match[field] = value;
-
   saveData(data);
 }
 
@@ -432,7 +369,6 @@ function deleteMatch(matchId) {
   }
 
   const data = loadData();
-
   data.matches = data.matches.filter(match => match.id !== matchId);
 
   Object.keys(data.guesses).forEach(initials => {
@@ -452,30 +388,10 @@ function seedExampleMatches() {
   }
 
   const matches = [
-    {
-      date: '2026-06-11 21:00',
-      round: 'Group A',
-      home: 'Mexico',
-      away: 'South Africa'
-    },
-    {
-      date: '2026-06-12 18:00',
-      round: 'Group A',
-      home: 'USA',
-      away: 'Canada'
-    },
-    {
-      date: '2026-06-13 20:00',
-      round: 'Group B',
-      home: 'Denmark',
-      away: 'Germany'
-    },
-    {
-      date: '2026-06-14 21:00',
-      round: 'Group B',
-      home: 'Argentina',
-      away: 'France'
-    }
+    { date: '2026-06-11 21:00', round: 'Group A', home: 'Mexico', away: 'South Africa' },
+    { date: '2026-06-12 18:00', round: 'Group A', home: 'USA', away: 'Canada' },
+    { date: '2026-06-13 20:00', round: 'Group B', home: 'Denmark', away: 'Germany' },
+    { date: '2026-06-14 21:00', round: 'Group B', home: 'Argentina', away: 'France' }
   ];
 
   matches.forEach(match => {
@@ -498,19 +414,14 @@ function renderAdminMatches() {
   }
 
   tbody.innerHTML = '';
-
   const data = loadData();
 
   data.matches.forEach(match => {
     const row = document.createElement('tr');
 
     row.innerHTML = `
-      <td>
-        <input value="${escapeAttr(match.date || '')}" onchange="updateMatch('${match.id}', 'date', this.value)">
-      </td>
-      <td>
-        <input value="${escapeAttr(match.round || '')}" onchange="updateMatch('${match.id}', 'round', this.value)">
-      </td>
+      <td><input value="${escapeAttr(match.date || '')}" onchange="updateMatch('${match.id}', 'date', this.value)"></td>
+      <td><input value="${escapeAttr(match.round || '')}" onchange="updateMatch('${match.id}', 'round', this.value)"></td>
       <td>
         <input value="${escapeAttr(match.home)}" onchange="updateMatch('${match.id}', 'home', this.value)" style="margin-bottom:6px;">
         <input value="${escapeAttr(match.away)}" onchange="updateMatch('${match.id}', 'away', this.value)">
@@ -521,9 +432,7 @@ function renderAdminMatches() {
           <input type="number" min="0" placeholder="Away" value="${escapeAttr(match.awayScore)}" onchange="updateMatch('${match.id}', 'awayScore', this.value)">
         </div>
       </td>
-      <td>
-        <button class="danger" onclick="deleteMatch('${match.id}')">Delete</button>
-      </td>
+      <td><button class="danger" onclick="deleteMatch('${match.id}')">Delete</button></td>
     `;
 
     tbody.appendChild(row);
@@ -532,12 +441,9 @@ function renderAdminMatches() {
 
 function saveOfficialTopScorer() {
   const data = loadData();
+  const input = document.getElementById('officialTopScorer');
 
-  data.officialTopScorer = document
-    .getElementById('officialTopScorer')
-    .value
-    .trim();
-
+  data.officialTopScorer = input ? input.value.trim() : '';
   saveData(data);
 }
 
@@ -549,30 +455,24 @@ function renderAdminParticipants() {
   }
 
   tbody.innerHTML = '';
-
   const data = loadData();
 
-  Object.keys(data.participants)
-    .sort()
-    .forEach(initials => {
-      const participant = data.participants[initials];
-      const stats = getParticipantStats(initials);
+  Object.keys(data.participants).sort().forEach(initials => {
+    const participant = data.participants[initials];
+    const stats = getParticipantStats(initials);
+    const row = document.createElement('tr');
 
-      const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${escapeHtml(participant.initials)}</td>
+      <td>${escapeHtml(participant.fullName)}</td>
+      <td>${escapeHtml(participant.topScorerGuess || '-')}</td>
+      <td>${stats.guessed}</td>
+      <td>${stats.points}</td>
+      <td><button class="danger" onclick="deleteParticipant('${initials}')">Delete</button></td>
+    `;
 
-      row.innerHTML = `
-        <td>${escapeHtml(participant.initials)}</td>
-        <td>${escapeHtml(participant.fullName)}</td>
-        <td>${escapeHtml(participant.topScorerGuess || '-')}</td>
-        <td>${stats.guessed}</td>
-        <td>${stats.points}</td>
-        <td>
-          <button class="danger" onclick="deleteParticipant('${initials}')">Delete</button>
-        </td>
-      `;
-
-      tbody.appendChild(row);
-    });
+    tbody.appendChild(row);
+  });
 
   const officialTopScorerInput = document.getElementById('officialTopScorer');
   if (officialTopScorerInput) {
@@ -581,13 +481,13 @@ function renderAdminParticipants() {
 }
 
 function renderAdminPredictions() {
-  function renderAdminPredictions() {
   const tbody = document.getElementById('adminPredictions');
 
-  if (!tbody) return;
+  if (!tbody) {
+    return;
+  }
 
   tbody.innerHTML = '';
-
   const data = loadData();
 
   Object.keys(data.participants).sort().forEach(initials => {
@@ -595,44 +495,22 @@ function renderAdminPredictions() {
     const guesses = data.guesses[initials] || {};
 
     data.matches.forEach(match => {
-      const guess = guesses[match.id] || {
-        pick: '',
-        homeScore: '',
-        awayScore: ''
-      };
-
+      const guess = guesses[match.id] || { pick: '', homeScore: '', awayScore: '' };
       const points = getMatchPoints(match, guess).points;
-
       const row = document.createElement('tr');
 
       row.innerHTML = `
         <td>${escapeHtml(participant.initials)} - ${escapeHtml(participant.fullName)}</td>
-
         <td>
           ${escapeHtml(match.home)} - ${escapeHtml(match.away)}<br>
           <span class="small">${escapeHtml(match.round || '')} ${escapeHtml(match.date || '')}</span>
         </td>
-
         <td>
-          <div class="guess-inputs">
-            <input
-              type="number"
-              min="0"
-              placeholder="Home"
-              value="${escapeAttr(guess.homeScore)}"
-              onchange="updateAdminPrediction('${initials}', '${match.id}', 'homeScore', this.value)"
-            >
-
-            <input
-              type="number"
-              min="0"
-              placeholder="Away"
-              value="${escapeAttr(guess.awayScore)}"
-              onchange="updateAdminPrediction('${initials}', '${match.id}', 'awayScore', this.value)"
-            >
+          <div class="guess-inputs" style="grid-template-columns:80px 80px; min-width:170px;">
+            <input type="number" min="0" placeholder="Home" value="${escapeAttr(guess.homeScore)}" onchange="updateAdminPrediction('${initials}', '${match.id}', 'homeScore', this.value)">
+            <input type="number" min="0" placeholder="Away" value="${escapeAttr(guess.awayScore)}" onchange="updateAdminPrediction('${initials}', '${match.id}', 'awayScore', this.value)">
           </div>
         </td>
-
         <td>
           <select onchange="updateAdminPrediction('${initials}', '${match.id}', 'pick', this.value)">
             <option value="" ${guess.pick === '' ? 'selected' : ''}>Select</option>
@@ -641,9 +519,7 @@ function renderAdminPredictions() {
             <option value="2" ${guess.pick === '2' ? 'selected' : ''}>2</option>
           </select>
         </td>
-
         <td>${formatMatchResult(match)}</td>
-
         <td>${points}</td>
       `;
 
@@ -651,17 +527,12 @@ function renderAdminPredictions() {
     });
   });
 }
+
 function updateAdminPrediction(initials, matchId, field, value) {
   const data = loadData();
 
   data.guesses[initials] ||= {};
-
-  data.guesses[initials][matchId] ||= {
-    pick: '',
-    homeScore: '',
-    awayScore: ''
-  };
-
+  data.guesses[initials][matchId] ||= { pick: '', homeScore: '', awayScore: '' };
   data.guesses[initials][matchId][field] = value;
 
   const guess = data.guesses[initials][matchId];
@@ -671,47 +542,6 @@ function updateAdminPrediction(initials, matchId, field, value) {
   }
 
   saveData(data);
-}  }
-
-  tbody.innerHTML = '';
-
-  const data = loadData();
-
-  Object.keys(data.participants)
-    .sort()
-    .forEach(initials => {
-      const participant = data.participants[initials];
-      const guesses = data.guesses[initials] || {};
-
-      data.matches.forEach(match => {
-        const guess = guesses[match.id];
-        const points = getMatchPoints(match, guess).points;
-
-        const predictionText =
-          guess && guess.homeScore !== '' && guess.awayScore !== ''
-            ? `${guess.homeScore}-${guess.awayScore}`
-            : '-';
-
-        const pickText =
-          guess?.pick ||
-          (guess && guess.homeScore !== '' && guess.awayScore !== ''
-            ? outcome(guess.homeScore, guess.awayScore)
-            : '-');
-
-        const row = document.createElement('tr');
-
-        row.innerHTML = `
-          <td>${escapeHtml(participant.initials)} - ${escapeHtml(participant.fullName)}</td>
-          <td>${escapeHtml(match.home)} - ${escapeHtml(match.away)}<br><span class="small">${escapeHtml(match.round || '')} ${escapeHtml(match.date || '')}</span></td>
-          <td>${escapeHtml(predictionText)}</td>
-          <td>${escapeHtml(pickText)}</td>
-          <td>${formatMatchResult(match)}</td>
-          <td>${points}</td>
-        `;
-
-        tbody.appendChild(row);
-      });
-    });
 }
 
 function deleteParticipant(initials) {
@@ -739,14 +569,10 @@ function renderLeaderboard() {
   }
 
   tbody.innerHTML = '';
-
   const data = loadData();
 
   const rows = Object.keys(data.participants)
-    .map(initials => ({
-      ...data.participants[initials],
-      ...getParticipantStats(initials)
-    }))
+    .map(initials => ({ ...data.participants[initials], ...getParticipantStats(initials) }))
     .sort((a, b) => b.points - a.points || b.exacts - a.exacts || b.outcomes - a.outcomes);
 
   rows.forEach((row, index) => {
@@ -831,10 +657,9 @@ function renderOverview() {
         icon = '❌';
       }
 
-      const guessText =
-        guess && guess.homeScore !== '' && guess.awayScore !== ''
-          ? `${guess.homeScore}-${guess.awayScore} (${guess.pick || outcome(guess.homeScore, guess.awayScore)})`
-          : '-';
+      const guessText = guess && guess.homeScore !== '' && guess.awayScore !== ''
+        ? `${guess.homeScore}-${guess.awayScore} (${guess.pick || outcome(guess.homeScore, guess.awayScore)})`
+        : '-';
 
       html += `<td class="${className}">${icon} ${escapeHtml(guessText)}</td>`;
     });
@@ -880,13 +705,9 @@ function exportCSV() {
         `${match.home} - ${match.away}`,
         match.date || '',
         match.round || '',
-        guess && guess.homeScore !== '' && guess.awayScore !== ''
-          ? `${guess.homeScore}-${guess.awayScore}`
-          : '',
+        guess && guess.homeScore !== '' && guess.awayScore !== '' ? `${guess.homeScore}-${guess.awayScore}` : '',
         guess?.pick || '',
-        match.homeScore !== '' && match.awayScore !== ''
-          ? `${match.homeScore}-${match.awayScore}`
-          : '',
+        match.homeScore !== '' && match.awayScore !== '' ? `${match.homeScore}-${match.awayScore}` : '',
         result.points
       ]);
     });
