@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VM 2026 Gættekonkurrence</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #111827;
+      --card2: #1f2937;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --green: #22c55e;
+      --blue: #38bdf8;
+      --red: #ef4444;
+      --yellow: #facc15;
+      --border: #334155;
+      --input: #020617;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: radial-gradient(circle at top, #1e3a8a 0, var(--bg) 40%, #020617 100%);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    header {
+      padding: 28px 18px 18px;
+      text-align: center;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 32px;
+      letter-spacing: -0.5px;
+    }
+
+    header p {
+      color: var(--muted);
+      margin: 8px 0 0;
+    }
+
+    .container {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    .card {
+      background: rgba(17, 24, 39, 0.92);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 18px;
+      margin-bottom: 16px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 5px;
+    }
+
+    input, select, button, textarea {
+      width: 100%;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--input);
+      color: var(--text);
+      padding: 10px 12px;
+      font-size: 14px;
+    }
+
+    button {
+      cursor: pointer;
+      background: linear-gradient(135deg, #2563eb, #0ea5e9);
+      border: none;
+      font-weight: 700;
+      transition: transform 0.12s ease, opacity 0.12s ease;
+    }
+
+    button:hover { transform: translateY(-1px); opacity: 0.94; }
+    button.secondary { background: #334155; }
+    button.danger { background: #b91c1c; }
+    button.success { background: #15803d; }
+    button.warning { background: #ca8a04; color: #111827; }
+
+    .tabs {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .tab {
+      flex: 1;
+      min-width: 160px;
+    }
+
+    .hidden { display: none !important; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      overflow: hidden;
+      border-radius: 12px;
+    }
+
+    th, td {
+      border-bottom: 1px solid var(--border);
+      padding: 10px;
+      text-align: left;
+      vertical-align: middle;
+      font-size: 14px;
+    }
+
+    th {
+      color: #cbd5e1;
+      background: rgba(30, 41, 59, 0.9);
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    tr:hover td { background: rgba(51, 65, 85, 0.35); }
+
+    .scroll {
+      overflow-x: auto;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 999px;
+      padding: 5px 10px;
+      font-size: 13px;
+      background: #334155;
+      color: #e2e8f0;
+    }
+
+    .green { color: var(--green); }
+    .blue { color: var(--blue); }
+    .red { color: var(--red); }
+    .yellow { color: var(--yellow); }
+
+    .status-exact { background: rgba(34,197,94,0.18); }
+    .status-outcome { background: rgba(56,189,248,0.15); }
+    .status-wrong { background: rgba(239,68,68,0.14); }
+
+    .small { color: var(--muted); font-size: 13px; }
+    .right { text-align: right; }
+    .center { text-align: center; }
+
+    .match-title {
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+
+    .subtle-box {
+      background: rgba(2, 6, 23, 0.55);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px;
+    }
+
+    .row-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .row-actions button {
+      width: auto;
+      min-width: 120px;
+    }
+
+    .guess-inputs {
+      display: grid;
+      grid-template-columns: 90px 80px 80px;
+      gap: 8px;
+      min-width: 260px;
+    }
+
+    .footer-note {
+      text-align: center;
+      color: var(--muted);
+      font-size: 12px;
+      padding: 24px;
+    }
+
+    @media (max-width: 650px) {
+      header h1 { font-size: 25px; }
+      th, td { font-size: 13px; padding: 8px; }
+      .guess-inputs { grid-template-columns: 1fr; }
+      .row-actions button { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🏆 VM 2026 Gættekonkurrence</h1>
+    <p>1/X/2 + eksakt resultat · Topscorerbonus · Automatisk rangliste</p>
+  </header>
+
+  <div class="container">
+    <div class="tabs">
+      <button class="tab" onclick="showView('participant')">Deltager</button>
+      <button class="tab secondary" onclick="showView('leaderboard')">Rangliste</button>
+      <button class="tab secondary" onclick="showView('overview')">Gæt-oversigt</button>
+      <button class="tab warning" onclick="openAdminLogin()">Admin</button>
+    </div>
+
+    <section id="participantView" class="card">
+      <h2>Deltager-login</h2>
+      <div class="grid">
+        <div>
+          <label>Initialer</label>
+          <input id="initials" placeholder="Fx GN" maxlength="8" />
+        </div>
+        <div>
+          <label>Fulde navn</label>
+          <input id="fullName" placeholder="Fx Gustaf Nørgaard" />
+        </div>
+        <div>
+          <label>Topscorer-gæt</label>
+          <input id="topScorerGuess" placeholder="Fx Mbappé" />
+        </div>
+        <div style="align-self:end;">
+          <button onclick="loginParticipant()">Log ind / Afgiv gæt</button>
+        </div>
+      </div>
+
+      <div id="participantPanel" class="hidden" style="margin-top:18px;">
+        <div class="subtle-box">
+          <div class="row-actions">
+            <span class="pill">Deltager: <strong id="activeParticipantName"></strong></span>
+            <span class="pill">Gemmes automatisk i browseren</span>
+          </div>
+        </div>
+        <h3>Kampe</h3>
+        <div class="scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Kamp</th>
+                <th>Dit gæt</th>
+                <th>Resultat</th>
+                <th>Point</th>
+              </tr>
+            </thead>
+            <tbody id="participantMatches"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="leaderboardView" class="card hidden">
+      <h2>Automatisk rangliste</h2>
+      <div class="grid">
+        <div class="subtle-box"><strong id="participantCount">0</strong><br><span class="small">Deltagere</span></div>
+        <div class="subtle-box"><strong id="poolSize">0 kr.</strong><br><span class="small">Pulje á 50 kr.</span></div>
+        <div class="subtle-box"><strong id="totalGuesses">0</strong><br><span class="small">Samlede gættede kampe</span></div>
+        <div class="subtle-box"><strong id="completedMatches">0</strong><br><span class="small">Afsluttede kampe</span></div>
+      </div>
+      <br>
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Initialer</th>
+              <th>Navn</th>
+              <th>Point</th>
+              <th>Eksakte</th>
+              <th>Udfald</th>
+              <th>Gættede kampe</th>
+              <th>Topscorer</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboardBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="overviewView" class="card hidden">
+      <h2>Oversigt over alle gæt</h2>
+      <p class="small">Grøn ✅ = eksakt, blå 🔵 = rigtigt udfald, rød ❌ = forkert.</p>
+      <div class="scroll">
+        <table id="overviewTable"></table>
+      </div>
+    </section>
+
+    <section id="adminLoginView" class="card hidden">
+      <h2>Admin-login</h2>
+      <div class="grid">
+        <div>
+          <label>Admin-kode</label>
+          <input id="adminCode" type="password" placeholder="Indtast kode" />
+        </div>
+        <div style="align-self:end;">
+          <button onclick="adminLogin()">Log ind som admin</button>
+        </div>
+      </div>
+      <p class="small">Standardkode: vm2026-G</p>
+    </section>
+
+    <section id="adminView" class="card hidden">
+      <h2>Admin-panel</h2>
+      <div class="row-actions">
+        <button onclick="seedExampleMatches()">Indlæs eksempelkampe</button>
+        <button class="success" onclick="exportCSV()">Eksporter CSV</button>
+        <button class="secondary" onclick="exportJSON()">Eksporter JSON backup</button>
+        <button class="secondary" onclick="document.getElementById('importFile').click()">Importer JSON backup</button>
+        <button class="danger" onclick="resetAllData()">Nulstil alt</button>
+        <input id="importFile" type="file" accept="application/json" class="hidden" onchange="importJSON(event)" />
+      </div>
+
+      <hr style="border-color: var(--border); margin:18px 0;">
+
+      <h3>Tilføj kamp</h3>
+      <div class="grid">
+        <div>
+          <label>Dato/tid</label>
+          <input id="matchDate" placeholder="Fx 2026-06-11 21:00" />
+        </div>
+        <div>
+          <label>Gruppe/Runde</label>
+          <input id="matchRound" placeholder="Fx Gruppe A" />
+        </div>
+        <div>
+          <label>Hjemmehold</label>
+          <input id="homeTeam" placeholder="Fx Danmark" />
+        </div>
+        <div>
+          <label>Udehold</label>
+          <input id="awayTeam" placeholder="Fx Brasilien" />
+        </div>
+        <div style="align-self:end;">
+          <button onclick="addMatch()">Tilføj kamp</button>
+        </div>
+      </div>
+
+      <h3>Resultater og kampe</h3>
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Dato</th>
+              <th>Runde</th>
+              <th>Kamp</th>
+              <th>Resultat</th>
+              <th>Handling</th>
+            </tr>
+          </thead>
+          <tbody id="adminMatches"></tbody>
+        </table>
+      </div>
+
+      <h3>Topscorer-resultat</h3>
+      <div class="grid">
+        <div>
+          <label>Officiel topscorer</label>
+          <input id="officialTopScorer" placeholder="Fx Mbappé" oninput="saveOfficialTopScorer()" />
+        </div>
+        <div class="subtle-box">
+          <strong>Bonus:</strong> 20 point hvis deltagerens topscorer-gæt matcher.
+        </div>
+      </div>
+
+      <h3>Deltagere</h3>
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Initialer</th>
+              <th>Navn</th>
+              <th>Topscorer-gæt</th>
+              <th>Gættede kampe</th>
+              <th>Handling</th>
+            </tr>
+          </thead>
+          <tbody id="adminParticipants"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <div class="footer-note">
+    Data gemmes i denne browsers localStorage. Brug eksport/import for backup eller deling mellem enheder.
+  </div>
+
+<script>
+  const STORAGE_KEY = 'vm2026_guess_competition_v1';
+  const ADMIN_CODE = 'vm2026-G';
+  let activeParticipant = null;
+
+  const defaultData = {
+    matches: [],
+    participants: {},
+    guesses: {},
+    officialTopScorer: ''
+  };
+
+  function loadData() {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return structuredClone(defaultData);
+    try {
+      const parsed = JSON.parse(raw);
+      return { ...structuredClone(defaultData), ...parsed };
+    } catch {
+      return structuredClone(defaultData);
+    }
+  }
+
+  function saveData(data) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    renderAll();
+  }
+
+  function uid() {
+    return 'm_' + Date.now() + '_' + Math.random().toString(16).slice(2);
+  }
+
+  function normalize(text) {
+    return (text || '').trim().toLowerCase();
+  }
+
+  function outcome(home, away) {
+    const h = Number(home);
+    const a = Number(away);
+    if (Number.isNaN(h) || Number.isNaN(a)) return '';
+    if (h > a) return '1';
+    if (h === a) return 'X';
+    return '2';
+  }
+
+  function getMatchPoints(match, guess) {
+    if (!guess || match.homeScore === '' || match.awayScore === '' || match.homeScore === undefined || match.awayScore === undefined) {
+      return { points: 0, exact: false, outcomeCorrect: false, status: '' };
+    }
+
+    const gh = Number(guess.homeScore);
+    const ga = Number(guess.awayScore);
+    const mh = Number(match.homeScore);
+    const ma = Number(match.awayScore);
+
+    if ([gh, ga, mh, ma].some(Number.isNaN)) {
+      return { points: 0, exact: false, outcomeCorrect: false, status: '' };
+    }
+
+    const exact = gh === mh && ga === ma;
+    const outcomeCorrect = outcome(gh, ga) === outcome(mh, ma);
+
+    if (exact) return { points: 3, exact: true, outcomeCorrect: true, status: 'exact' };
+    if (outcomeCorrect) return { points: 1, exact: false, outcomeCorrect: true, status: 'outcome' };
+    return { points: 0, exact: false, outcomeCorrect: false, status: 'wrong' };
+  }
+
+  function getParticipantStats(initials) {
+    const data = loadData();
+    const participant = data.participants[initials];
+    const guesses = data.guesses[initials] || {};
+    let points = 0, exacts = 0, outcomes = 0, guessed = 0;
+
+    data.matches.forEach(match => {
+      const guess = guesses[match.id];
+      if (guess && guess.homeScore !== '' && guess.awayScore !== '') guessed++;
+      const result = getMatchPoints(match, guess);
+      points += result.points;
+      if (result.exact) exacts++;
+      else if (result.outcomeCorrect) outcomes++;
+    });
+
+    const topScorerCorrect = normalize(participant?.topScorerGuess) && normalize(participant?.topScorerGuess) === normalize(data.officialTopScorer);
+    if (topScorerCorrect) points += 20;
+
+    return { points, exacts, outcomes, guessed, topScorerCorrect };
+  }
+
+  function showView(view) {
+    ['participantView', 'leaderboardView', 'overviewView', 'adminLoginView', 'adminView'].forEach(id => {
+      document.getElementById(id).classList.add('hidden');
+    });
+    document.getElementById(view + 'View').classList.remove('hidden');
+    renderAll();
+  }
+
+  function openAdminLogin() {
+    showView('adminLogin');
+  }
+
+  function adminLogin() {
+    const code = document.getElementById('adminCode').value;
+    if (code === ADMIN_CODE) {
+      showView('admin');
+    } else {
+      alert('Forkert admin-kode');
+    }
+  }
+
+  function loginParticipant() {
+    const initials = document.getElementById('initials').value.trim().toUpperCase();
+    const fullName = document.getElementById('fullName').value.trim();
+    const topScorerGuess = document.getElementById('topScorerGuess').value.trim();
+
+    if (!initials || !fullName) {
+      alert('Indtast både initialer og fulde navn.');
+      return;
+    }
+
+    const data = loadData();
+    data.participants[initials] = { initials, fullName, topScorerGuess, updatedAt: new Date().toISOString() };
+    data.guesses[initials] ||= {};
+    activeParticipant = initials;
+    saveData(data);
+    document.getElementById('participantPanel').classList.remove('hidden');
+    document.getElementById('activeParticipantName').textContent = `${initials} - ${fullName}`;
+  }
+
+  function saveGuess(matchId, field, value) {
+    if (!activeParticipant) return;
+    const data = loadData();
+    data.guesses[activeParticipant] ||= {};
+    data.guesses[activeParticipant][matchId] ||= { pick: '', homeScore: '', awayScore: '' };
+    data.guesses[activeParticipant][matchId][field] = value;
+
+    const g = data.guesses[activeParticipant][matchId];
+    if (g.homeScore !== '' && g.awayScore !== '') g.pick = outcome(g.homeScore, g.awayScore);
+
+    saveData(data);
+  }
+
+  function addMatch() {
+    const date = document.getElementById('matchDate').value.trim();
+    const round = document.getElementById('matchRound').value.trim();
+    const home = document.getElementById('homeTeam').value.trim();
+    const away = document.getElementById('awayTeam').value.trim();
+
+    if (!home || !away) {
+      alert('Indtast hjemmehold og udehold.');
+      return;
+    }
+
+    const data = loadData();
+    data.matches.push({ id: uid(), date, round, home, away, homeScore: '', awa
