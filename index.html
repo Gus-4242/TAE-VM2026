@@ -65,6 +65,24 @@
             </thead>
             <tbody id="participantMatches"></tbody>
           </table>
+          <br />
+
+<button
+  class="success"
+  onclick="savePredictionsConfirmation()"
+>
+  Save predictions
+</button>
+
+<p
+  id="saveMessage"
+  class="small hidden"
+  style="margin-top:12px;"
+>
+  Your bets are now saved.
+  If you need any changes after final submission,
+  please contact Admin.
+</p>
         </div>
       </div>
       <div id="notLoggedInBox" class="subtle-box">
@@ -163,6 +181,30 @@
           <thead><tr><th>Initials</th><th>Name</th><th>Top scorer prediction</th><th>Predicted matches</th><th>Points</th><th>Action</th></tr></thead>
           <tbody id="adminParticipants"></tbody>
         </table>
+        <h3>Participant Predictions Review</h3>
+
+<p class="small">
+  Admin overview of all participant predictions.
+</p>
+
+<div class="scroll">
+
+  <table>
+
+    <thead>
+      <tr>
+        <th>Participant</th>
+        <th>Match</th>
+        <th>Prediction</th>
+        <th>1/X/2</th>
+      </tr>
+    </thead>
+
+    <tbody id="adminPredictions"></tbody>
+
+  </table>
+
+</div>
       </div>
     </section>
   </div>
