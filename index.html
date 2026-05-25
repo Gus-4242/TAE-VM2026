@@ -152,6 +152,27 @@
 
       <hr class="divider" />
 
+      <h3>Import Matches From Excel / CSV</h3>
+
+      <p class="small">
+      Paste matches using format:
+      Date;Round;Home Team;Away Team
+      </p>
+      
+      <textarea
+        id="bulkMatchInput"
+        rows="8"
+        placeholder="2026-06-11 21:00;Group A;Mexico;South Africa"
+      ></textarea>
+      
+      <br><br>
+      
+      <button onclick="importMatches()">
+        Import Matches
+      </button>
+      
+      <hr class="divider">
+      
       <h3>Add Match</h3>
       <div class="grid">
         <div><label>Date/time</label><input id="matchDate" placeholder="e.g. 2026-06-11 21:00" /></div>
