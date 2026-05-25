@@ -41,6 +41,7 @@ function showView(view) {
     'homeView',
     'myPredictionsView',
     'leaderboardView',
+    'groupsView',
     'overviewView',
     'adminLoginView',
     'adminView'
@@ -282,6 +283,10 @@ function getSortedMatches(matches) {
 
     return timeA - timeB;
   });
+}
+
+function isGroupMatch(match) {
+  return /^group\s+/i.test(String(match.round || '').trim());
 }
 
 function isMatchLocked(match) {
@@ -649,9 +654,9 @@ function seedExampleMatches() {
 
   const matches = [
     { date: '2026-06-11 21:00', round: 'Group A', home: 'Mexico', away: 'South Africa' },
-    { date: '2026-06-12 18:00', round: 'Group A', home: 'USA', away: 'Canada' },
-    { date: '2026-06-13 20:00', round: 'Group B', home: 'Denmark', away: 'Germany' },
-    { date: '2026-06-14 21:00', round: 'Group B', home: 'Argentina', away: 'France' }
+    { date: '2026-06-11 23:00', round: 'Group A', home: 'USA', away: 'Canada' },
+    { date: '2026-06-12 18:00', round: 'Group B', home: 'Denmark', away: 'Germany' },
+    { date: '2026-06-12 21:00', round: 'Group B', home: 'Argentina', away: 'France' }
   ];
 
   matches.forEach(match => {
@@ -969,6 +974,200 @@ function getLeaderboardMedal(index) {
   return '';
 }
 
+function calculateGroupStandings() {
+  const data = loadData();
+  const groups = {};
+
+  getSortedMatches(data.matches)
+    .filter(isGroupMatch)
+    .forEach(match => {
+      const groupName = String(match.round || '').trim();
+
+      if (!groups[groupName]) {
+        groups[groupName] = {
+          teams: {},
+          completedMatches: 0,
+          pendingMatches: 0
+        };
+      }
+
+      ensureTeam(groups[groupName].teams, match.home);
+      ensureTeam(groups[groupName].teams, match.away);
+
+      const isCompleted =
+        match.homeScore !== '' &&
+        match.awayScore !== '' &&
+        match.homeScore !== undefined &&
+        match.awayScore !== undefined;
+
+      if (!isCompleted) {
+        groups[groupName].pendingMatches++;
+        return;
+      }
+
+      const homeScore = Number(match.homeScore);
+      const awayScore = Number(match.awayScore);
+
+      if (Number.isNaN(homeScore) || Number.isNaN(awayScore)) {
+        groups[groupName].pendingMatches++;
+        return;
+      }
+
+      groups[groupName].completedMatches++;
+
+      const homeTeam = groups[groupName].teams[match.home];
+      const awayTeam = groups[groupName].teams[match.away];
+
+      homeTeam.p += 1;
+      awayTeam.p += 1;
+
+      homeTeam.gf += homeScore;
+      homeTeam.ga += awayScore;
+      awayTeam.gf += awayScore;
+      awayTeam.ga += homeScore;
+
+      if (homeScore > awayScore) {
+        homeTeam.w += 1;
+        homeTeam.pts += 3;
+        awayTeam.l += 1;
+      } else if (homeScore < awayScore) {
+        awayTeam.w += 1;
+        awayTeam.pts += 3;
+        homeTeam.l += 1;
+      } else {
+        homeTeam.d += 1;
+        awayTeam.d += 1;
+        homeTeam.pts += 1;
+        awayTeam.pts += 1;
+      }
+    });
+
+  return groups;
+}
+
+function ensureTeam(teams, teamName) {
+  if (!teams[teamName]) {
+    teams[teamName] = {
+      team: teamName,
+      p: 0,
+      w: 0,
+      d: 0,
+      l: 0,
+      gf: 0,
+      ga: 0,
+      pts: 0
+    };
+  }
+}
+
+function sortGroupTeams(teams) {
+  return Object.values(teams).sort((a, b) =>
+    b.pts - a.pts ||
+    (b.gf - b.ga) - (a.gf - a.ga) ||
+    b.gf - a.gf ||
+    a.team.localeCompare(b.team)
+  );
+}
+
+function renderGroupStandings() {
+  const container = document.getElementById('groupsContainer');
+
+  if (!container) {
+    return;
+  }
+
+  const groups = calculateGroupStandings();
+  const groupNames = Object.keys(groups).sort((a, b) => a.localeCompare(b));
+
+  container.innerHTML = '';
+
+  let totalTeams = 0;
+  let totalCompleted = 0;
+  let totalPending = 0;
+
+  if (groupNames.length === 0) {
+    container.innerHTML = `
+      <div class="subtle-box">
+        <strong>No group matches found.</strong><br />
+        <span class="small">Use Group/Round values like Group A, Group B, etc.</span>
+      </div>
+    `;
+
+    setText('groupCount', 0);
+    setText('groupTeamCount', 0);
+    setText('groupCompletedMatches', 0);
+    setText('groupPendingMatches', 0);
+    return;
+  }
+
+  groupNames.forEach(groupName => {
+    const group = groups[groupName];
+    const sortedTeams = sortGroupTeams(group.teams);
+
+    totalTeams += sortedTeams.length;
+    totalCompleted += group.completedMatches;
+    totalPending += group.pendingMatches;
+
+    const groupCard = document.createElement('div');
+    groupCard.className = 'card';
+
+    let html = `
+      <h3>${escapeHtml(groupName)}</h3>
+      <p class="small">Completed matches: ${group.completedMatches} · Pending matches: ${group.pendingMatches}</p>
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Team</th>
+              <th>P</th>
+              <th>W</th>
+              <th>D</th>
+              <th>L</th>
+              <th>GF</th>
+              <th>GA</th>
+              <th>GD</th>
+              <th>PTS</th>
+            </tr>
+          </thead>
+          <tbody>
+    `;
+
+    sortedTeams.forEach((team, index) => {
+      const gd = team.gf - team.ga;
+
+      html += `
+        <tr>
+          <td><strong>${index + 1}</strong></td>
+          <td><strong>${escapeHtml(team.team)}</strong></td>
+          <td>${team.p}</td>
+          <td>${team.w}</td>
+          <td>${team.d}</td>
+          <td>${team.l}</td>
+          <td>${team.gf}</td>
+          <td>${team.ga}</td>
+          <td>${gd}</td>
+          <td><strong>${team.pts}</strong></td>
+        </tr>
+      `;
+    });
+
+    html += `
+          </tbody>
+        </table>
+      </div>
+    `;
+
+    groupCard.innerHTML = html;
+    container.appendChild(groupCard);
+  });
+
+  setText('groupCount', groupNames.length);
+  setText('groupTeamCount', totalTeams);
+  setText('groupCompletedMatches', totalCompleted);
+  setText('groupPendingMatches', totalPending);
+}
+
 function renderOverview() {
   const table = document.getElementById('overviewTable');
 
@@ -1187,6 +1386,7 @@ function renderAll() {
   renderAdminParticipants();
   renderAdminSelectedPredictions();
   renderLeaderboard();
+  renderGroupStandings();
   renderOverview();
   updateActiveTab(currentView);
 }
