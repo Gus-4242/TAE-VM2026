@@ -158,37 +158,24 @@ function normalize(text) {
   return String(text || '').trim().toLowerCase();
 }
 
-function parseMatchDate(match) {
-  if (!match.date) {
-    return null;
-  }
-
-  const normalizedDate = String(match.date).trim().replace(' ', 'T');
-  const parsedDate = new Date(normalizedDate);
-
-  if (Number.isNaN(parsedDate.getTime())) {
-    return null;
-  }
-
-  return parsedDate;
-}
-
 function isMatchLocked(match) {
-  const matchDate = parseMatchDate(match);
-
-  if (!matchDate) {
-    return false;
-  }
-
-  return new Date() >= matchDate;
+  return match.locked === true;
 }
 
 function getLockLabel(match) {
   if (isMatchLocked(match)) {
-    return '<span class="small red">🔒 Locked after kickoff</span>';
+    return '<span class="small red">🔒 Locked by Admin</span>';
   }
 
   return '<span class="small green">🟢 Open for predictions</span>';
+}
+
+function getLockButtonText(match) {
+  return isMatchLocked(match) ? 'Open match' : 'Lock match';
+}
+
+function getLockButtonClass(match) {
+  return isMatchLocked(match) ? 'success' : 'warning';
 }
 
 function isMatchFinished(match) {
@@ -432,7 +419,8 @@ function importMatches() {
       home,
       away,
       homeScore: '',
-      awayScore: ''
+      awayScore: '',
+      locked: false
     });
 
     imported++;
@@ -463,7 +451,8 @@ function addMatch() {
     home,
     away,
     homeScore: '',
-    awayScore: ''
+    awayScore: '',
+    locked: false
   });
 
   saveData(data);
@@ -483,6 +472,18 @@ function updateMatch(matchId, field, value) {
   }
 
   match[field] = value;
+  saveData(data);
+}
+
+function toggleMatchLock(matchId) {
+  const data = loadData();
+  const match = data.matches.find(item => item.id === matchId);
+
+  if (!match) {
+    return;
+  }
+
+  match.locked = !isMatchLocked(match);
   saveData(data);
 }
 
@@ -522,7 +523,8 @@ function seedExampleMatches() {
       id: crypto.randomUUID(),
       ...match,
       homeScore: '',
-      awayScore: ''
+      awayScore: '',
+      locked: false
     });
   });
 
@@ -557,7 +559,11 @@ function renderAdminMatches() {
           <input type="number" min="0" placeholder="Away" value="${escapeAttr(match.awayScore)}" onchange="updateMatch('${match.id}', 'awayScore', this.value)">
         </div>
       </td>
-      <td><button class="danger" onclick="deleteMatch('${match.id}')">Delete</button></td>
+      <td>
+        <button class="${getLockButtonClass(match)}" onclick="toggleMatchLock('${match.id}')">${getLockButtonText(match)}</button>
+        <br><br>
+        <button class="danger" onclick="deleteMatch('${match.id}')">Delete</button>
+      </td>
     `;
 
     tbody.appendChild(row);
