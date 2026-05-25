@@ -22,24 +22,57 @@
     </div>
 
     <section id="homeView" class="card">
-      <h2>Participant Login</h2>
-      <p class="small">Create your profile and then submit your World Cup predictions.</p>
+      <h2>Welcome</h2>
+      <p class="small">Log in with your initials and password, or create a new user if this is your first time.</p>
+
       <div class="grid">
-        <div>
-          <label>Initials</label>
-          <input id="initials" placeholder="e.g. GN" maxlength="8" />
+        <button onclick="showLoginPanel()">Login</button>
+        <button class="secondary" onclick="showNewUserPanel()">Create New User</button>
+      </div>
+
+      <div id="loginPanel" class="subtle-box" style="margin-top:18px;">
+        <h3>Login</h3>
+        <div class="grid">
+          <div>
+            <label>Initials</label>
+            <input id="loginInitials" placeholder="e.g. GN" maxlength="8" />
+          </div>
+          <div>
+            <label>Password</label>
+            <input id="loginPassword" type="password" placeholder="Enter your password" />
+          </div>
+          <div style="align-self:end;">
+            <button onclick="loginExistingParticipant()">Login</button>
+          </div>
         </div>
-        <div>
-          <label>Full name</label>
-          <input id="fullName" placeholder="e.g. Gustaf Nørgaard" />
+      </div>
+
+      <div id="newUserPanel" class="subtle-box hidden" style="margin-top:18px;">
+        <h3>Create New User</h3>
+        <div class="grid">
+          <div>
+            <label>Initials</label>
+            <input id="newInitials" placeholder="e.g. GN" maxlength="8" />
+          </div>
+          <div>
+            <label>Full name</label>
+            <input id="newFullName" placeholder="e.g. Gustaf Nørgaard" />
+          </div>
+          <div>
+            <label>Password</label>
+            <input id="newPassword" type="password" placeholder="Choose a simple password" />
+          </div>
+          <div>
+            <label>Top scorer prediction</label>
+            <input id="newTopScorerGuess" placeholder="e.g. Mbappé" />
+          </div>
+          <div style="align-self:end;">
+            <button onclick="createNewParticipant()">Create user</button>
+          </div>
         </div>
-        <div>
-          <label>Top scorer prediction</label>
-          <input id="topScorerGuess" placeholder="e.g. Mbappé" />
-        </div>
-        <div style="align-self:end;">
-          <button onclick="loginParticipant()">Create profile / Continue</button>
-        </div>
+        <p class="small" style="margin-top:12px;">
+          Your initials and password will be used for future login. Admin can see your login information if you need help later.
+        </p>
       </div>
     </section>
 
@@ -65,29 +98,17 @@
             </thead>
             <tbody id="participantMatches"></tbody>
           </table>
-          <br />
-
-<button
-  class="success"
-  onclick="savePredictionsConfirmation()"
->
-  Save predictions
-</button>
-
-<p
-  id="saveMessage"
-  class="small hidden"
-  style="margin-top:12px;"
->
-  Your bets are now saved.
-  If you need any changes after final submission,
-  please contact Admin.
-</p>
         </div>
+
+        <br />
+        <button class="success" onclick="savePredictionsConfirmation()">Save predictions</button>
+        <p id="saveMessage" class="small hidden" style="margin-top:12px;">
+          Your bets are now saved. If you need any changes after final submission, please contact Admin.
+        </p>
       </div>
       <div id="notLoggedInBox" class="subtle-box">
         <strong>You are not logged in yet.</strong><br />
-        <span class="small">Go to Home and create your participant profile first.</span>
+        <span class="small">Go to Home and log in or create a new user first.</span>
       </div>
     </section>
 
@@ -121,7 +142,7 @@
 
     <section id="overviewView" class="card hidden">
       <h2>All Predictions Overview</h2>
-      <p class="small">Green ✅ = exact score, blue 🔵 = correct outcome, red ❌ = wrong prediction.</p>
+      <p class="small">Green ✅ = Exact score/Correct outcome, Blue 🔵 = Correct outcome/Wrong Score, Red ❌ = Wrong prediction.</p>
       <div class="scroll"><table id="overviewTable"></table></div>
     </section>
 
@@ -153,26 +174,13 @@
       <hr class="divider" />
 
       <h3>Import Matches From Excel / CSV</h3>
-
-      <p class="small">
-      Paste matches using format:
-      Date;Round;Home Team;Away Team
-      </p>
-      
-      <textarea
-        id="bulkMatchInput"
-        rows="8"
-        placeholder="2026-06-11 21:00;Group A;Mexico;South Africa"
-      ></textarea>
-      
+      <p class="small">Paste matches using format: Date;Round;Home Team;Away Team</p>
+      <textarea id="bulkMatchInput" rows="8" placeholder="2026-06-11 21:00;Group A;Mexico;South Africa"></textarea>
       <br><br>
-      
-      <button onclick="importMatches()">
-        Import Matches
-      </button>
-      
-      <hr class="divider">
-      
+      <button onclick="importMatches()">Import Matches</button>
+
+      <hr class="divider" />
+
       <h3>Add Match</h3>
       <div class="grid">
         <div><label>Date/time</label><input id="matchDate" placeholder="e.g. 2026-06-11 21:00" /></div>
@@ -199,33 +207,37 @@
       <h3>Participants</h3>
       <div class="scroll">
         <table>
-          <thead><tr><th>Initials</th><th>Name</th><th>Top scorer prediction</th><th>Predicted matches</th><th>Points</th><th>Action</th></tr></thead>
+          <thead>
+            <tr>
+              <th>Initials</th>
+              <th>Name</th>
+              <th>Password</th>
+              <th>Top scorer prediction</th>
+              <th>Predicted matches</th>
+              <th>Points</th>
+              <th>Action</th>
+            </tr>
+          </thead>
           <tbody id="adminParticipants"></tbody>
         </table>
-        <h3>Participant Predictions Review</h3>
+      </div>
 
-<p class="small">
-  Admin overview of all participant predictions.
-</p>
-
-<div class="scroll">
-
-  <table>
-
-    <thead>
-      <tr>
-        <th>Participant</th>
-        <th>Match</th>
-        <th>Prediction</th>
-        <th>1/X/2</th>
-      </tr>
-    </thead>
-
-    <tbody id="adminPredictions"></tbody>
-
-  </table>
-
-</div>
+      <h3>Participant Predictions Review</h3>
+      <p class="small">Admin overview of all participant predictions. This is useful if a participant requests support or changes.</p>
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Participant</th>
+              <th>Match</th>
+              <th>Prediction</th>
+              <th>1/X/2</th>
+              <th>Match result</th>
+              <th>Points</th>
+            </tr>
+          </thead>
+          <tbody id="adminPredictions"></tbody>
+        </table>
       </div>
     </section>
   </div>
