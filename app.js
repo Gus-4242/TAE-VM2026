@@ -158,6 +158,36 @@ function normalize(text) {
   return String(text || '').trim().toLowerCase();
 }
 
+function normalizeScore(value) {
+  const numberValue = Number(value);
+
+  if (Number.isNaN(numberValue) || numberValue < 0) {
+    return '0';
+  }
+
+  return String(Math.floor(numberValue));
+}
+
+function getDefaultGuess() {
+  return {
+    pick: 'X',
+    homeScore: '0',
+    awayScore: '0'
+  };
+}
+
+function getSortedMatches(matches) {
+  return [...matches].sort((a, b) => {
+    const dateA = new Date((a.date || '').replace(' ', 'T'));
+    const dateB = new Date((b.date || '').replace(' ', 'T'));
+
+    const timeA = Number.isNaN(dateA.getTime()) ? Number.MAX_SAFE_INTEGER : dateA.getTime();
+    const timeB = Number.isNaN(dateB.getTime()) ? Number.MAX_SAFE_INTEGER : dateB.getTime();
+
+    return timeA - timeB;
+  });
+}
+
 function isMatchLocked(match) {
   return match.locked === true;
 }
@@ -243,24 +273,6 @@ function getMatchPoints(match, guess) {
   return { points: 0, exact: false, outcomeCorrect: false, status: 'wrong' };
 }
 
-function getSortedMatches(matches) {
-
-  return [...matches].sort((a, b) => {
-
-    const dateA =
-      new Date(
-        (a.date || '').replace(' ', 'T')
-      );
-
-    const dateB =
-      new Date(
-        (b.date || '').replace(' ', 'T')
-      );
-
-    return dateA - dateB;
-  });
-}
-
 function getParticipantStats(initials) {
   const data = loadData();
   const participant = data.participants[initials];
@@ -329,7 +341,7 @@ function renderParticipantMatches() {
   }
 
   getSortedMatches(data.matches).forEach(match => {
-    const guess = guesses[match.id] || { pick: '', homeScore: '', awayScore: '' };
+    const guess = guesses[match.id] || getDefaultGuess();
     const result = getMatchPoints(match, guess);
     const locked = isMatchLocked(match);
     const disabled = locked ? 'disabled' : '';
@@ -350,8 +362,8 @@ function renderParticipantMatches() {
             <option value="X" ${guess.pick === 'X' ? 'selected' : ''}>X</option>
             <option value="2" ${guess.pick === '2' ? 'selected' : ''}>2</option>
           </select>
-          <input type="number" min="0" placeholder="Home" value="${escapeAttr(guess.homeScore)}" ${disabled} onchange="saveGuess('${match.id}', 'homeScore', this.value)">
-          <input type="number" min="0" placeholder="Away" value="${escapeAttr(guess.awayScore)}" ${disabled} onchange="saveGuess('${match.id}', 'awayScore', this.value)">
+          <input type="number" min="0" step="1" placeholder="Home" value="${escapeAttr(guess.homeScore)}" ${disabled} oninput="this.value = normalizeScore(this.value)" onchange="saveGuess('${match.id}', 'homeScore', this.value)">
+          <input type="number" min="0" step="1" placeholder="Away" value="${escapeAttr(guess.awayScore)}" ${disabled} oninput="this.value = normalizeScore(this.value)" onchange="saveGuess('${match.id}', 'awayScore', this.value)">
         </div>
       </td>
       <td>${formatMatchResult(match)}</td>
@@ -384,8 +396,13 @@ function saveGuess(matchId, field, value) {
   }
 
   data.guesses[activeParticipant] ||= {};
-  data.guesses[activeParticipant][matchId] ||= { pick: '', homeScore: '', awayScore: '' };
-  data.guesses[activeParticipant][matchId][field] = value;
+  data.guesses[activeParticipant][matchId] ||= getDefaultGuess();
+
+  if (field === 'homeScore' || field === 'awayScore') {
+    data.guesses[activeParticipant][matchId][field] = normalizeScore(value);
+  } else {
+    data.guesses[activeParticipant][matchId][field] = value;
+  }
 
   const guess = data.guesses[activeParticipant][matchId];
 
@@ -489,7 +506,12 @@ function updateMatch(matchId, field, value) {
     return;
   }
 
-  match[field] = value;
+  if (field === 'homeScore' || field === 'awayScore') {
+    match[field] = value === '' ? '' : normalizeScore(value);
+  } else {
+    match[field] = value;
+  }
+
   saveData(data);
 }
 
@@ -573,8 +595,8 @@ function renderAdminMatches() {
       </td>
       <td>
         <div class="guess-inputs" style="grid-template-columns:80px 80px; min-width:170px;">
-          <input type="number" min="0" placeholder="Home" value="${escapeAttr(match.homeScore)}" onchange="updateMatch('${match.id}', 'homeScore', this.value)">
-          <input type="number" min="0" placeholder="Away" value="${escapeAttr(match.awayScore)}" onchange="updateMatch('${match.id}', 'awayScore', this.value)">
+          <input type="number" min="0" step="1" placeholder="Home" value="${escapeAttr(match.homeScore)}" oninput="this.value = normalizeScore(this.value)" onchange="updateMatch('${match.id}', 'homeScore', this.value)">
+          <input type="number" min="0" step="1" placeholder="Away" value="${escapeAttr(match.awayScore)}" oninput="this.value = normalizeScore(this.value)" onchange="updateMatch('${match.id}', 'awayScore', this.value)">
         </div>
       </td>
       <td>
@@ -644,7 +666,7 @@ function renderAdminPredictions() {
     const guesses = data.guesses[initials] || {};
 
     getSortedMatches(data.matches).forEach(match => {
-      const guess = guesses[match.id] || { pick: '', homeScore: '', awayScore: '' };
+      const guess = guesses[match.id] || getDefaultGuess();
       const result = getMatchPoints(match, guess);
       const row = document.createElement('tr');
 
@@ -658,8 +680,8 @@ function renderAdminPredictions() {
         </td>
         <td>
           <div class="guess-inputs" style="grid-template-columns:80px 80px; min-width:170px;">
-            <input type="number" min="0" placeholder="Home" value="${escapeAttr(guess.homeScore)}" onchange="updateAdminPrediction('${initials}', '${match.id}', 'homeScore', this.value)">
-            <input type="number" min="0" placeholder="Away" value="${escapeAttr(guess.awayScore)}" onchange="updateAdminPrediction('${initials}', '${match.id}', 'awayScore', this.value)">
+            <input type="number" min="0" step="1" placeholder="Home" value="${escapeAttr(guess.homeScore)}" oninput="this.value = normalizeScore(this.value)" onchange="updateAdminPrediction('${initials}', '${match.id}', 'homeScore', this.value)">
+            <input type="number" min="0" step="1" placeholder="Away" value="${escapeAttr(guess.awayScore)}" oninput="this.value = normalizeScore(this.value)" onchange="updateAdminPrediction('${initials}', '${match.id}', 'awayScore', this.value)">
           </div>
         </td>
         <td>
@@ -683,8 +705,13 @@ function updateAdminPrediction(initials, matchId, field, value) {
   const data = loadData();
 
   data.guesses[initials] ||= {};
-  data.guesses[initials][matchId] ||= { pick: '', homeScore: '', awayScore: '' };
-  data.guesses[initials][matchId][field] = value;
+  data.guesses[initials][matchId] ||= getDefaultGuess();
+
+  if (field === 'homeScore' || field === 'awayScore') {
+    data.guesses[initials][matchId][field] = normalizeScore(value);
+  } else {
+    data.guesses[initials][matchId][field] = value;
+  }
 
   const guess = data.guesses[initials][matchId];
 
