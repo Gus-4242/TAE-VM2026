@@ -1109,25 +1109,25 @@ function renderGroupStandings() {
     totalPending += group.pendingMatches;
 
     const groupCard = document.createElement('div');
-    groupCard.className = 'card';
+    groupCard.className = 'group-card';
 
     let html = `
-      <h3>${escapeHtml(groupName)}</h3>
-      <p class="small">Completed matches: ${group.completedMatches} · Pending matches: ${group.pendingMatches}</p>
+      <div class="group-title">${escapeHtml(groupName)}</div>
+      <div class="group-meta small">Completed matches: ${group.completedMatches} · Pending matches: ${group.pendingMatches}</div>
       <div class="scroll">
-        <table>
+        <table class="group-table">
           <thead>
             <tr>
-              <th>#</th>
-              <th>Team</th>
+              <th>Pos</th>
+              <th>Nation</th>
+              <th>Pts</th>
               <th>P</th>
               <th>W</th>
               <th>D</th>
               <th>L</th>
-              <th>GF</th>
-              <th>GA</th>
+              <th>F</th>
+              <th>A</th>
               <th>GD</th>
-              <th>PTS</th>
             </tr>
           </thead>
           <tbody>
@@ -1135,19 +1135,20 @@ function renderGroupStandings() {
 
     sortedTeams.forEach((team, index) => {
       const gd = team.gf - team.ga;
+      const gdText = gd > 0 ? `+${gd}` : String(gd);
 
       html += `
         <tr>
-          <td><strong>${index + 1}</strong></td>
-          <td><strong>${escapeHtml(team.team)}</strong></td>
+          <td class="group-pos">${index + 1}</td>
+          <td class="group-nation"><strong>${escapeHtml(team.team)}</strong></td>
+          <td class="group-points"><strong>${team.pts}</strong></td>
           <td>${team.p}</td>
           <td>${team.w}</td>
           <td>${team.d}</td>
           <td>${team.l}</td>
           <td>${team.gf}</td>
           <td>${team.ga}</td>
-          <td>${gd}</td>
-          <td><strong>${team.pts}</strong></td>
+          <td>${gdText}</td>
         </tr>
       `;
     });
