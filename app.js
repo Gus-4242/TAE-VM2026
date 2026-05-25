@@ -1,5 +1,5 @@
 const STORAGE_KEY = 'world_cup_2026_tae_guess_tournament';
-const ADMIN_CODE = 'vm2026-G';
+const ADMIN_CODE = '1234';
 
 let activeParticipant = null;
 
@@ -58,6 +58,32 @@ function showView(view) {
   renderAll();
 }
 
+function showLoginPanel() {
+  const loginPanel = document.getElementById('loginPanel');
+  const newUserPanel = document.getElementById('newUserPanel');
+
+  if (loginPanel) {
+    loginPanel.classList.remove('hidden');
+  }
+
+  if (newUserPanel) {
+    newUserPanel.classList.add('hidden');
+  }
+}
+
+function showNewUserPanel() {
+  const loginPanel = document.getElementById('loginPanel');
+  const newUserPanel = document.getElementById('newUserPanel');
+
+  if (loginPanel) {
+    loginPanel.classList.add('hidden');
+  }
+
+  if (newUserPanel) {
+    newUserPanel.classList.remove('hidden');
+  }
+}
+
 function openAdminLogin() {
   showView('adminLogin');
 }
@@ -73,27 +99,35 @@ function adminLogin() {
   }
 }
 
-function loginParticipant() {
-  const initialsInput = document.getElementById('initials');
-  const fullNameInput = document.getElementById('fullName');
-  const topScorerInput = document.getElementById('topScorerGuess');
+function createNewParticipant() {
+  const initialsInput = document.getElementById('newInitials');
+  const fullNameInput = document.getElementById('newFullName');
+  const passwordInput = document.getElementById('newPassword');
+  const topScorerInput = document.getElementById('newTopScorerGuess');
 
   const initials = initialsInput.value.trim().toUpperCase();
   const fullName = fullNameInput.value.trim();
+  const password = passwordInput.value.trim();
   const topScorerGuess = topScorerInput.value.trim();
 
-  if (!initials || !fullName) {
-    alert('Please enter initials and full name');
+  if (!initials || !fullName || !password) {
+    alert('Please enter initials, full name and password.');
     return;
   }
 
   const data = loadData();
 
+  if (data.participants[initials]) {
+    alert('A user with these initials already exists. Please log in or contact Admin.');
+    return;
+  }
+
   data.participants[initials] = {
     initials,
     fullName,
+    password,
     topScorerGuess,
-    createdAt: data.participants[initials]?.createdAt || new Date().toISOString(),
+    createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   };
 
@@ -101,6 +135,45 @@ function loginParticipant() {
   activeParticipant = initials;
 
   saveData(data);
+
+  initialsInput.value = '';
+  fullNameInput.value = '';
+  passwordInput.value = '';
+  topScorerInput.value = '';
+
+  showView('myPredictions');
+}
+
+function loginExistingParticipant() {
+  const initialsInput = document.getElementById('loginInitials');
+  const passwordInput = document.getElementById('loginPassword');
+
+  const initials = initialsInput.value.trim().toUpperCase();
+  const password = passwordInput.value.trim();
+
+  if (!initials || !password) {
+    alert('Please enter initials and password.');
+    return;
+  }
+
+  const data = loadData();
+  const participant = data.participants[initials];
+
+  if (!participant) {
+    alert('User not found. Please create a new user or contact Admin.');
+    return;
+  }
+
+  if (participant.password !== password) {
+    alert('Incorrect password. Please try again or contact Admin.');
+    return;
+  }
+
+  activeParticipant = initials;
+
+  initialsInput.value = '';
+  passwordInput.value = '';
+
   showView('myPredictions');
 }
 
@@ -131,7 +204,7 @@ function savePredictionsConfirmation() {
   const saveMessage = document.getElementById('saveMessage');
 
   if (!activeParticipant) {
-    alert('Please create your participant profile before saving predictions.');
+    alert('Please log in before saving predictions.');
     showView('home');
     return;
   }
@@ -381,7 +454,7 @@ function renderParticipantMatches() {
 
 function saveGuess(matchId, field, value) {
   if (!activeParticipant) {
-    alert('Please create your participant profile first.');
+    alert('Please log in first.');
     showView('home');
     return;
   }
@@ -636,6 +709,7 @@ function renderAdminParticipants() {
     row.innerHTML = `
       <td>${escapeHtml(participant.initials)}</td>
       <td>${escapeHtml(participant.fullName)}</td>
+      <td>${escapeHtml(participant.password || '-')}</td>
       <td>${escapeHtml(participant.topScorerGuess || '-')}</td>
       <td>${stats.guessed}</td>
       <td>${stats.points}</td>
@@ -903,6 +977,7 @@ function exportCSV() {
     'Type',
     'Initials',
     'Name',
+    'Password',
     'Top scorer prediction',
     'Match',
     'Date',
@@ -925,6 +1000,7 @@ function exportCSV() {
         'Prediction',
         initials,
         participant.fullName,
+        participant.password || '',
         participant.topScorerGuess || '',
         `${match.home} - ${match.away}`,
         match.date || '',
