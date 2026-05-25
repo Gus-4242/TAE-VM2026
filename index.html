@@ -14,11 +14,11 @@
 
   <div class="container">
     <div class="tabs">
-      <button class="tab" onclick="showView('home')">Home</button>
-      <button class="tab secondary" onclick="showView('myPredictions')">My Predictions</button>
-      <button class="tab secondary" onclick="showView('leaderboard')">Leaderboard</button>
-      <button class="tab secondary" onclick="showView('overview')">All Predictions</button>
-      <button class="tab warning" onclick="openAdminLogin()">Admin</button>
+      <button class="tab" data-view="home" onclick="showView('home')">Home</button>
+      <button class="tab secondary" data-view="myPredictions" onclick="showView('myPredictions')">My Predictions</button>
+      <button class="tab secondary" data-view="leaderboard" onclick="showView('leaderboard')">Leaderboard</button>
+      <button class="tab secondary" data-view="overview" onclick="showView('overview')">All Predictions</button>
+      <button class="tab warning" data-view="admin" onclick="openAdminLogin()">Admin</button>
     </div>
 
     <section id="homeView" class="card">
@@ -157,7 +157,7 @@
           <button onclick="adminLogin()">Log in as admin</button>
         </div>
       </div>
-      <p class="small">Default password: vm2026-G</p>
+      <p class="small">Default test password: 1234</p>
     </section>
 
     <section id="adminView" class="card hidden">
@@ -205,6 +205,7 @@
       </div>
 
       <h3>Participants</h3>
+      <p class="small">Click “View Predictions” to review or edit one participant's picks.</p>
       <div class="scroll">
         <table>
           <thead>
@@ -222,13 +223,18 @@
         </table>
       </div>
 
-      <h3>Participant Predictions Review</h3>
-      <p class="small">Admin overview of all participant predictions. This is useful if a participant requests support or changes.</p>
+      <h3>Participant Prediction Detail</h3>
+      <div id="selectedParticipantBox" class="subtle-box">
+        <strong>No participant selected.</strong><br />
+        <span class="small">Click “View Predictions” next to a participant above.</span>
+      </div>
+
+      <br />
+
       <div class="scroll">
         <table>
           <thead>
             <tr>
-              <th>Participant</th>
               <th>Match</th>
               <th>Prediction</th>
               <th>1/X/2</th>
@@ -236,7 +242,7 @@
               <th>Points</th>
             </tr>
           </thead>
-          <tbody id="adminPredictions"></tbody>
+          <tbody id="adminSelectedPredictions"></tbody>
         </table>
       </div>
     </section>
