@@ -290,4 +290,57 @@ tr:hover td {
   outline: 4px solid #00ff00 !important;
   box-shadow: 0 0 25px #ffff00 !important;
 }
-  }
+
+/* Group standings layout */
+.group-card {
+  margin: 28px 0;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(15, 23, 42, 0.9);
+}
+
+.group-title {
+  text-align: center;
+  font-size: 30px;
+  font-weight: 800;
+  padding: 12px;
+  background: rgba(148, 163, 184, 0.35);
+  color: #ffffff;
+}
+
+.group-meta {
+  text-align: center;
+  padding: 8px;
+  background: rgba(30, 41, 59, 0.85);
+}
+
+.group-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.group-table th {
+  background: rgba(148, 163, 184, 0.35);
+  font-size: 20px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.group-table td {
+  text-align: center;
+  font-size: 18px;
+}
+
+.group-table .group-nation {
+  text-align: left;
+  font-size: 20px;
+}
+
+.group-table .group-pos {
+  font-weight: 800;
+}
+
+.group-table .group-points {
+  font-size: 22px;
+}
