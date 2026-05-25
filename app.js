@@ -363,6 +363,66 @@ function saveGuess(matchId, field, value) {
   saveData(data);
 }
 
+function importMatches() {
+
+  const input =
+    document.getElementById('bulkMatchInput');
+
+  if (!input) {
+    return;
+  }
+
+  const lines =
+    input.value
+      .split('\n')
+      .map(line => line.trim())
+      .filter(line => line !== '');
+
+  if (lines.length === 0) {
+    alert('No matches found');
+    return;
+  }
+
+  const data = loadData();
+
+  let imported = 0;
+
+  lines.forEach(line => {
+
+    const parts =
+      line.split(';');
+
+    if (parts.length < 4) {
+      return;
+    }
+
+    const [
+      date,
+      round,
+      home,
+      away
+    ] = parts.map(p => p.trim());
+
+    data.matches.push({
+      id: crypto.randomUUID(),
+      date,
+      round,
+      home,
+      away,
+      homeScore: '',
+      awayScore: ''
+    });
+
+    imported++;
+  });
+
+  saveData(data);
+
+  input.value = '';
+
+  alert(`${imported} matches imported`);
+}
+
 function addMatch() {
   const date = document.getElementById('matchDate').value.trim();
   const round = document.getElementById('matchRound').value.trim();
