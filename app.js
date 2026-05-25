@@ -2,6 +2,8 @@ const STORAGE_KEY = 'world_cup_2026_tae_guess_tournament';
 const ADMIN_CODE = '1234';
 
 let activeParticipant = null;
+let selectedAdminParticipant = null;
+let currentView = 'home';
 
 const defaultData = {
   matches: [],
@@ -33,6 +35,8 @@ function saveData(data) {
 }
 
 function showView(view) {
+  currentView = view;
+
   const views = [
     'homeView',
     'myPredictionsView',
@@ -55,7 +59,26 @@ function showView(view) {
     targetView.classList.remove('hidden');
   }
 
+  updateActiveTab(view);
   renderAll();
+}
+
+function updateActiveTab(view) {
+  const tabs = document.querySelectorAll('.tab[data-view]');
+
+  tabs.forEach(tab => {
+    tab.classList.remove('active');
+
+    const tabView = tab.getAttribute('data-view');
+
+    if (tabView === view) {
+      tab.classList.add('active');
+    }
+
+    if ((view === 'adminLogin' || view === 'admin') && tabView === 'admin') {
+      tab.classList.add('active');
+    }
+  });
 }
 
 function showLoginPanel() {
@@ -713,7 +736,11 @@ function renderAdminParticipants() {
       <td>${escapeHtml(participant.topScorerGuess || '-')}</td>
       <td>${stats.guessed}</td>
       <td>${stats.points}</td>
-      <td><button class="danger" onclick="deleteParticipant('${initials}')">Delete</button></td>
+      <td>
+        <button onclick="selectAdminParticipant('${initials}')">View Predictions</button>
+        <br><br>
+        <button class="danger" onclick="deleteParticipant('${initials}')">Delete</button>
+      </td>
     `;
 
     tbody.appendChild(row);
@@ -725,53 +752,88 @@ function renderAdminParticipants() {
   }
 }
 
-function renderAdminPredictions() {
-  const tbody = document.getElementById('adminPredictions');
+function selectAdminParticipant(initials) {
+  const data = loadData();
 
-  if (!tbody) {
+  if (!data.participants[initials]) {
+    selectedAdminParticipant = null;
+    renderAdminSelectedPredictions();
+    return;
+  }
+
+  selectedAdminParticipant = initials;
+  renderAdminSelectedPredictions();
+}
+
+function renderAdminSelectedPredictions() {
+  const tbody = document.getElementById('adminSelectedPredictions');
+  const selectedBox = document.getElementById('selectedParticipantBox');
+
+  if (!tbody || !selectedBox) {
     return;
   }
 
   tbody.innerHTML = '';
+
   const data = loadData();
 
-  Object.keys(data.participants).sort().forEach(initials => {
-    const participant = data.participants[initials];
-    const guesses = data.guesses[initials] || {};
+  if (!selectedAdminParticipant || !data.participants[selectedAdminParticipant]) {
+    selectedBox.innerHTML = `
+      <strong>No participant selected.</strong><br />
+      <span class="small">Click “View Predictions” next to a participant above.</span>
+    `;
+    return;
+  }
 
-    getSortedMatches(data.matches).forEach(match => {
-      const guess = guesses[match.id] || getDefaultGuess();
-      const result = getMatchPoints(match, guess);
-      const row = document.createElement('tr');
+  const participant = data.participants[selectedAdminParticipant];
+  const guesses = data.guesses[selectedAdminParticipant] || {};
+  const stats = getParticipantStats(selectedAdminParticipant);
 
-      row.innerHTML = `
-        <td>${escapeHtml(participant.initials)} - ${escapeHtml(participant.fullName)}</td>
-        <td>
-          ${escapeHtml(match.home)} - ${escapeHtml(match.away)}<br>
-          <span class="small">${escapeHtml(match.round || '')} ${escapeHtml(match.date || '')}</span><br>
-          ${getLockLabel(match)}<br>
-          ${isMatchFinished(match)}
-        </td>
-        <td>
-          <div class="guess-inputs" style="grid-template-columns:80px 80px; min-width:170px;">
-            <input type="number" min="0" step="1" placeholder="Home" value="${escapeAttr(guess.homeScore)}" oninput="this.value = normalizeScore(this.value)" onchange="updateAdminPrediction('${initials}', '${match.id}', 'homeScore', this.value)">
-            <input type="number" min="0" step="1" placeholder="Away" value="${escapeAttr(guess.awayScore)}" oninput="this.value = normalizeScore(this.value)" onchange="updateAdminPrediction('${initials}', '${match.id}', 'awayScore', this.value)">
-          </div>
-        </td>
-        <td>
-          <select onchange="updateAdminPrediction('${initials}', '${match.id}', 'pick', this.value)">
-            <option value="" ${guess.pick === '' ? 'selected' : ''}>Select</option>
-            <option value="1" ${guess.pick === '1' ? 'selected' : ''}>1</option>
-            <option value="X" ${guess.pick === 'X' ? 'selected' : ''}>X</option>
-            <option value="2" ${guess.pick === '2' ? 'selected' : ''}>2</option>
-          </select>
-        </td>
-        <td>${formatMatchResult(match)}</td>
-        <td><strong>${result.points}</strong><br>${getPredictionStatus(result)}</td>
-      `;
+  selectedBox.innerHTML = `
+    <strong>${escapeHtml(participant.initials)} - ${escapeHtml(participant.fullName)}</strong><br />
+    <span class="small">Password: ${escapeHtml(participant.password || '-')} · Top scorer: ${escapeHtml(participant.topScorerGuess || '-')} · Points: ${stats.points}</span>
+  `;
 
-      tbody.appendChild(row);
-    });
+  if (data.matches.length === 0) {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td colspan="5"><span class="small">No matches have been added yet.</span></td>
+    `;
+    tbody.appendChild(row);
+    return;
+  }
+
+  getSortedMatches(data.matches).forEach(match => {
+    const guess = guesses[match.id] || getDefaultGuess();
+    const result = getMatchPoints(match, guess);
+    const row = document.createElement('tr');
+
+    row.innerHTML = `
+      <td>
+        ${escapeHtml(match.home)} - ${escapeHtml(match.away)}<br>
+        <span class="small">${escapeHtml(match.round || '')} ${escapeHtml(match.date || '')}</span><br>
+        ${getLockLabel(match)}<br>
+        ${isMatchFinished(match)}
+      </td>
+      <td>
+        <div class="guess-inputs" style="grid-template-columns:80px 80px; min-width:170px;">
+          <input type="number" min="0" step="1" placeholder="Home" value="${escapeAttr(guess.homeScore)}" oninput="this.value = normalizeScore(this.value)" onchange="updateAdminPrediction('${selectedAdminParticipant}', '${match.id}', 'homeScore', this.value)">
+          <input type="number" min="0" step="1" placeholder="Away" value="${escapeAttr(guess.awayScore)}" oninput="this.value = normalizeScore(this.value)" onchange="updateAdminPrediction('${selectedAdminParticipant}', '${match.id}', 'awayScore', this.value)">
+        </div>
+      </td>
+      <td>
+        <select onchange="updateAdminPrediction('${selectedAdminParticipant}', '${match.id}', 'pick', this.value)">
+          <option value="" ${guess.pick === '' ? 'selected' : ''}>Select</option>
+          <option value="1" ${guess.pick === '1' ? 'selected' : ''}>1</option>
+          <option value="X" ${guess.pick === 'X' ? 'selected' : ''}>X</option>
+          <option value="2" ${guess.pick === '2' ? 'selected' : ''}>2</option>
+        </select>
+      </td>
+      <td>${formatMatchResult(match)}</td>
+      <td><strong>${result.points}</strong><br>${getPredictionStatus(result)}</td>
+    `;
+
+    tbody.appendChild(row);
   });
 }
 
@@ -808,6 +870,10 @@ function deleteParticipant(initials) {
 
   if (activeParticipant === initials) {
     activeParticipant = null;
+  }
+
+  if (selectedAdminParticipant === initials) {
+    selectedAdminParticipant = null;
   }
 
   saveData(data);
@@ -1058,6 +1124,7 @@ function resetAllData() {
 
   localStorage.removeItem(STORAGE_KEY);
   activeParticipant = null;
+  selectedAdminParticipant = null;
   renderAll();
 }
 
@@ -1118,9 +1185,10 @@ function renderAll() {
   renderParticipantMatches();
   renderAdminMatches();
   renderAdminParticipants();
-  renderAdminPredictions();
+  renderAdminSelectedPredictions();
   renderLeaderboard();
   renderOverview();
+  updateActiveTab(currentView);
 }
 
-renderAll();
+showView('home');
