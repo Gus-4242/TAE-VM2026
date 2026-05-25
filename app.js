@@ -243,6 +243,24 @@ function getMatchPoints(match, guess) {
   return { points: 0, exact: false, outcomeCorrect: false, status: 'wrong' };
 }
 
+function getSortedMatches(matches) {
+
+  return [...matches].sort((a, b) => {
+
+    const dateA =
+      new Date(
+        (a.date || '').replace(' ', 'T')
+      );
+
+    const dateB =
+      new Date(
+        (b.date || '').replace(' ', 'T')
+      );
+
+    return dateA - dateB;
+  });
+}
+
 function getParticipantStats(initials) {
   const data = loadData();
   const participant = data.participants[initials];
@@ -253,7 +271,7 @@ function getParticipantStats(initials) {
   let outcomes = 0;
   let guessed = 0;
 
-  data.matches.forEach(match => {
+  getSortedMatches(data.matches).forEach(match => {
     const guess = guesses[match.id];
 
     if (guess && guess.homeScore !== '' && guess.awayScore !== '') {
@@ -310,7 +328,7 @@ function renderParticipantMatches() {
     return;
   }
 
-  data.matches.forEach(match => {
+  getSortedMatches(data.matches).forEach(match => {
     const guess = guesses[match.id] || { pick: '', homeScore: '', awayScore: '' };
     const result = getMatchPoints(match, guess);
     const locked = isMatchLocked(match);
@@ -541,7 +559,7 @@ function renderAdminMatches() {
   tbody.innerHTML = '';
   const data = loadData();
 
-  data.matches.forEach(match => {
+  getSortedMatches(data.matches).forEach(match => {
     const row = document.createElement('tr');
 
     row.innerHTML = `
@@ -625,7 +643,7 @@ function renderAdminPredictions() {
     const participant = data.participants[initials];
     const guesses = data.guesses[initials] || {};
 
-    data.matches.forEach(match => {
+    getSortedMatches(data.matches).forEach(match => {
       const guess = guesses[match.id] || { pick: '', homeScore: '', awayScore: '' };
       const result = getMatchPoints(match, guess);
       const row = document.createElement('tr');
@@ -802,7 +820,7 @@ function renderOverview() {
 
   html += '</tr></thead><tbody>';
 
-  data.matches.forEach(match => {
+  getSortedMatches(data.matches).forEach(match => {
     html += `
       <tr>
         <td>
@@ -872,7 +890,7 @@ function exportCSV() {
     const participant = data.participants[initials];
     const guesses = data.guesses[initials] || {};
 
-    data.matches.forEach(match => {
+    getSortedMatches(data.matches).forEach(match => {
       const guess = guesses[match.id];
       const result = getMatchPoints(match, guess);
 
