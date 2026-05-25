@@ -17,6 +17,7 @@
       <button class="tab" data-view="home" onclick="showView('home')">Home</button>
       <button class="tab secondary" data-view="myPredictions" onclick="showView('myPredictions')">My Predictions</button>
       <button class="tab secondary" data-view="leaderboard" onclick="showView('leaderboard')">Leaderboard</button>
+      <button class="tab secondary" data-view="groups" onclick="showView('groups')">Groups</button>
       <button class="tab secondary" data-view="overview" onclick="showView('overview')">All Predictions</button>
       <button class="tab warning" data-view="admin" onclick="openAdminLogin()">Admin</button>
     </div>
@@ -138,6 +139,24 @@
           <tbody id="leaderboardBody"></tbody>
         </table>
       </div>
+    </section>
+
+    <section id="groupsView" class="card hidden">
+      <h2>Group Standings</h2>
+      <p class="small">
+        Group tables are calculated automatically from matches marked as Group A, Group B, etc. Results entered by Admin update the standings.
+      </p>
+
+      <div class="grid">
+        <div class="subtle-box"><strong id="groupCount">0</strong><br><span class="small">Groups</span></div>
+        <div class="subtle-box"><strong id="groupTeamCount">0</strong><br><span class="small">Teams</span></div>
+        <div class="subtle-box"><strong id="groupCompletedMatches">0</strong><br><span class="small">Completed group matches</span></div>
+        <div class="subtle-box"><strong id="groupPendingMatches">0</strong><br><span class="small">Pending group matches</span></div>
+      </div>
+
+      <br />
+
+      <div id="groupsContainer"></div>
     </section>
 
     <section id="overviewView" class="card hidden">
