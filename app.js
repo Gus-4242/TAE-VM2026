@@ -191,6 +191,35 @@ function getLockLabel(match) {
   return '<span class="small green">🟢 Open for predictions</span>';
 }
 
+function isMatchFinished(match) {
+  if (
+    match.homeScore !== '' &&
+    match.awayScore !== '' &&
+    match.homeScore !== undefined &&
+    match.awayScore !== undefined
+  ) {
+    return '<span class="small green">🏁 Match completed</span>';
+  }
+
+  return '<span class="small">⏳ Waiting for result</span>';
+}
+
+function getPredictionStatus(result) {
+  if (result.status === 'exact') {
+    return '<span class="small green">✅ Exact score (+3)</span>';
+  }
+
+  if (result.status === 'outcome') {
+    return '<span class="small blue">🔵 Correct outcome (+1)</span>';
+  }
+
+  if (result.status === 'wrong') {
+    return '<span class="small red">❌ Wrong prediction</span>';
+  }
+
+  return '<span class="small">⏳ Awaiting result</span>';
+}
+
 function getMatchPoints(match, guess) {
   if (
     !guess ||
@@ -305,7 +334,8 @@ function renderParticipantMatches() {
       <td>
         <strong>${escapeHtml(match.home)} - ${escapeHtml(match.away)}</strong><br>
         <span class="small">${escapeHtml(match.round || '')} ${escapeHtml(match.date || '')}</span><br>
-        ${getLockLabel(match)}
+        ${getLockLabel(match)}<br>
+        ${isMatchFinished(match)}
       </td>
       <td>
         <div class="guess-inputs">
@@ -320,7 +350,10 @@ function renderParticipantMatches() {
         </div>
       </td>
       <td>${formatMatchResult(match)}</td>
-      <td>${result.points}</td>
+      <td>
+        <strong>${result.points}</strong><br>
+        ${getPredictionStatus(result)}
+      </td>
     `;
 
     tbody.appendChild(row);
@@ -364,19 +397,16 @@ function saveGuess(matchId, field, value) {
 }
 
 function importMatches() {
-
-  const input =
-    document.getElementById('bulkMatchInput');
+  const input = document.getElementById('bulkMatchInput');
 
   if (!input) {
     return;
   }
 
-  const lines =
-    input.value
-      .split('\n')
-      .map(line => line.trim())
-      .filter(line => line !== '');
+  const lines = input.value
+    .split('\n')
+    .map(line => line.trim())
+    .filter(line => line !== '');
 
   if (lines.length === 0) {
     alert('No matches found');
@@ -384,24 +414,16 @@ function importMatches() {
   }
 
   const data = loadData();
-
   let imported = 0;
 
   lines.forEach(line => {
-
-    const parts =
-      line.split(';');
+    const parts = line.split(';');
 
     if (parts.length < 4) {
       return;
     }
 
-    const [
-      date,
-      round,
-      home,
-      away
-    ] = parts.map(p => p.trim());
+    const [date, round, home, away] = parts.map(part => part.trim());
 
     data.matches.push({
       id: crypto.randomUUID(),
@@ -417,9 +439,7 @@ function importMatches() {
   });
 
   saveData(data);
-
   input.value = '';
-
   alert(`${imported} matches imported`);
 }
 
@@ -529,6 +549,7 @@ function renderAdminMatches() {
         <input value="${escapeAttr(match.home)}" onchange="updateMatch('${match.id}', 'home', this.value)" style="margin-bottom:6px;">
         <input value="${escapeAttr(match.away)}" onchange="updateMatch('${match.id}', 'away', this.value)">
         <div>${getLockLabel(match)}</div>
+        <div>${isMatchFinished(match)}</div>
       </td>
       <td>
         <div class="guess-inputs" style="grid-template-columns:80px 80px; min-width:170px;">
@@ -600,7 +621,7 @@ function renderAdminPredictions() {
 
     data.matches.forEach(match => {
       const guess = guesses[match.id] || { pick: '', homeScore: '', awayScore: '' };
-      const points = getMatchPoints(match, guess).points;
+      const result = getMatchPoints(match, guess);
       const row = document.createElement('tr');
 
       row.innerHTML = `
@@ -608,7 +629,8 @@ function renderAdminPredictions() {
         <td>
           ${escapeHtml(match.home)} - ${escapeHtml(match.away)}<br>
           <span class="small">${escapeHtml(match.round || '')} ${escapeHtml(match.date || '')}</span><br>
-          ${getLockLabel(match)}
+          ${getLockLabel(match)}<br>
+          ${isMatchFinished(match)}
         </td>
         <td>
           <div class="guess-inputs" style="grid-template-columns:80px 80px; min-width:170px;">
@@ -625,7 +647,7 @@ function renderAdminPredictions() {
           </select>
         </td>
         <td>${formatMatchResult(match)}</td>
-        <td>${points}</td>
+        <td><strong>${result.points}</strong><br>${getPredictionStatus(result)}</td>
       `;
 
       tbody.appendChild(row);
@@ -711,6 +733,7 @@ function renderLeaderboard() {
   rows.forEach((row, index) => {
     const tr = document.createElement('tr');
     const medal = getLeaderboardMedal(index);
+
     const topScorerPick = row.topScorerGuess && row.topScorerGuess.trim() !== ''
       ? escapeHtml(row.topScorerGuess)
       : '-';
@@ -779,7 +802,8 @@ function renderOverview() {
         <td>
           <strong>${escapeHtml(match.home)} - ${escapeHtml(match.away)}</strong><br>
           <span class="small">${escapeHtml(match.round || '')} ${escapeHtml(match.date || '')}</span><br>
-          ${getLockLabel(match)}
+          ${getLockLabel(match)}<br>
+          ${isMatchFinished(match)}
         </td>
         <td>${formatMatchResult(match)}</td>
     `;
