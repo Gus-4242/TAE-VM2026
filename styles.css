@@ -281,4 +281,11 @@ tr:hover td {
   background: linear-gradient(135deg, #f97316, #ea580c) !important;
   border: 1px solid #ea580c !important;
 }
+
+/* NY TYDELIG MARKERING */
+.tabs button.tab.active {
+  outline: 3px solid #facc15 !important;
+  outline-offset: 3px !important;
+  box-shadow: 0 0 18px rgba(250, 204, 21, 0.8) !important;
+}
   }
