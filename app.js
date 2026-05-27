@@ -1,5 +1,3 @@
-import { testFirebaseConnection } from "./firebase.js";
-window.testFirebaseConnection = testFirebaseConnection;
 
 const STORAGE_KEY = 'world_cup_2026_tae_guess_tournament';
 const ADMIN_CODE = '1234';
