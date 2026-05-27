@@ -270,6 +270,11 @@
 
   <div class="footer-note">Data is saved in this browser's localStorage. A shared online database will be added in a later version.</div>
 
-  <script type="module" src="app.js"></script>
+  <script src="app.js"></script>
+  <script type="module">
+  import { testFirebaseConnection } from "./firebase.js";
+  window.testFirebaseConnection = testFirebaseConnection;
+</script>
+  
 </body>
 </html>
