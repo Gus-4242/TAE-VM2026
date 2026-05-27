@@ -1,10 +1,12 @@
-
 const STORAGE_KEY = 'world_cup_2026_tae_guess_tournament';
 const ADMIN_CODE = '1234';
 
 let activeParticipant = null;
 let selectedAdminParticipant = null;
 let currentView = 'home';
+let appData = null;
+let firebaseIsReady = false;
+let saveTimer = null;
 
 const defaultData = {
   matches: [],
@@ -13,7 +15,16 @@ const defaultData = {
   officialTopScorer: ''
 };
 
-function loadData() {
+function getCleanData(data) {
+  return {
+    matches: data?.matches || [],
+    participants: data?.participants || {},
+    guesses: data?.guesses || {},
+    officialTopScorer: data?.officialTopScorer || ''
+  };
+}
+
+function getLocalData() {
   const raw = localStorage.getItem(STORAGE_KEY);
 
   if (!raw) {
@@ -23,16 +34,94 @@ function loadData() {
   try {
     return {
       ...structuredClone(defaultData),
-      ...JSON.parse(raw)
+      ...getCleanData(JSON.parse(raw))
     };
   } catch {
     return structuredClone(defaultData);
   }
 }
 
+function loadData() {
+  if (!appData) {
+    appData = getLocalData();
+  }
+
+  return structuredClone(appData);
+}
+
+function saveLocalBackup(data) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(getCleanData(data)));
+}
+
 function saveData(data) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  appData = {
+    ...structuredClone(defaultData),
+    ...getCleanData(data)
+  };
+
+  saveLocalBackup(appData);
   renderAll();
+  scheduleFirebaseSave();
+}
+
+function scheduleFirebaseSave() {
+  if (!firebaseIsReady || typeof window.saveTournamentDataToFirebase !== 'function') {
+    return;
+  }
+
+  clearTimeout(saveTimer);
+
+  saveTimer = setTimeout(async () => {
+    try {
+      await window.saveTournamentDataToFirebase(getCleanData(appData));
+      console.log('Saved to Firebase');
+    } catch (error) {
+      console.error('Firebase save failed:', error);
+    }
+  }, 300);
+}
+
+async function initializeTournamentData() {
+  appData = getLocalData();
+  renderAll();
+
+  try {
+    await waitForFirebase();
+
+    if (typeof window.loadTournamentDataFromFirebase !== 'function') {
+      return;
+    }
+
+    firebaseIsReady = true;
+
+    const cloudData = await window.loadTournamentDataFromFirebase();
+
+    if (cloudData) {
+      appData = {
+        ...structuredClone(defaultData),
+        ...getCleanData(cloudData)
+      };
+
+      saveLocalBackup(appData);
+      renderAll();
+      console.log('Loaded tournament data from Firebase');
+    } else {
+      await window.saveTournamentDataToFirebase(getCleanData(appData));
+      console.log('Created tournament data in Firebase from local backup');
+    }
+  } catch (error) {
+    console.error('Firebase load failed. Using localStorage backup:', error);
+  }
+}
+
+function waitForFirebase() {
+  if (typeof window.loadTournamentDataFromFirebase === 'function') {
+    return Promise.resolve();
+  }
+
+  return new Promise(resolve => {
+    window.addEventListener('firebase-ready', resolve, { once: true });
+  });
 }
 
 function showView(view) {
@@ -1319,14 +1408,18 @@ function importJSON(event) {
 }
 
 function resetAllData() {
-  if (!confirm('Delete ALL data in this browser?')) {
+  if (!confirm('Delete ALL data in this browser and Firebase database?')) {
     return;
   }
 
-  localStorage.removeItem(STORAGE_KEY);
+  appData = structuredClone(defaultData);
   activeParticipant = null;
   selectedAdminParticipant = null;
+
+  localStorage.removeItem(STORAGE_KEY);
+  saveLocalBackup(appData);
   renderAll();
+  scheduleFirebaseSave();
 }
 
 function formatMatchResult(match) {
@@ -1394,3 +1487,4 @@ function renderAll() {
 }
 
 showView('home');
+initializeTournamentData();
