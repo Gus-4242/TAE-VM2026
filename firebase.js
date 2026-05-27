@@ -1,13 +1,12 @@
-// Firebase imports
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import {
   getFirestore,
-  collection,
-  addDoc,
-  getDocs
+  doc,
+  getDoc,
+  setDoc,
+  serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-// Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyBd2NU7zYpkbe4CbFs_hPEmutKJhZyaLQw",
   authDomain: "tae-vm2026.firebaseapp.com",
@@ -18,26 +17,41 @@ const firebaseConfig = {
   measurementId: "G-YBPMZY3K8B"
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
-
-// Initialize Firestore
 export const db = getFirestore(app);
 
-// TEST FUNCTION
+const tournamentRef = doc(db, "tournament", "main");
+
 export async function testFirebaseConnection() {
-  try {
-    const docRef = await addDoc(collection(db, "test"), {
+  await setDoc(
+    doc(db, "test", "connection"),
+    {
       message: "Firebase connection works!",
-      created: new Date().toISOString()
-    });
+      updatedAt: serverTimestamp()
+    },
+    { merge: true }
+  );
 
-    console.log("Firebase test success:", docRef.id);
+  alert("🔥 Firebase connected successfully!");
+}
 
-    alert("🔥 Firebase connected successfully!");
-  } catch (error) {
-    console.error(error);
+export async function loadTournamentData() {
+  const snapshot = await getDoc(tournamentRef);
 
-    alert("Firebase error: " + error.message);
+  if (!snapshot.exists()) {
+    return null;
   }
+
+  return snapshot.data();
+}
+
+export async function saveTournamentData(data) {
+  await setDoc(
+    tournamentRef,
+    {
+      ...data,
+      updatedAt: serverTimestamp()
+    },
+    { merge: true }
+  );
 }
